@@ -46,6 +46,12 @@ De CSV heeft de kolommen `naam,klas,rol`. Het script toont de wachtwoorden **é�
 in de terminal — kopieer ze meteen, ze worden als scrypt-hash bewaard en zijn daarna
 niet meer op te vragen.
 
+## Werkt het?
+
+Open `/status` op de draaiende site. Die pagina controleert de instellingen, de
+verbinding met Supabase en of het schema uitgevoerd is, en zegt per punt wat er
+misgaat. Ze toont nooit de waarde van een instelling.
+
 ## Hoe het in elkaar zit
 
 ```
@@ -56,6 +62,7 @@ app/
   api/nakijken/             nakijken op de server (sleutel blijft hier)
   api/gebeurtenissen/       schermgebruik registreren
   api/login/                aanmelden tegen de tabel leerlingen
+  status/page.tsx           controlepagina na een deploy
 components/
   Werkblad.tsx              Univer, met Nederlandse functienamen
   OefeningWerkruimte.tsx    opdracht + rekenblad + feedback

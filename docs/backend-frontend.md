@@ -55,6 +55,16 @@ databanksleutel: alles loopt via de server. Dat is precies de bedoeling — zie 
 
 5. **Deploy.** Na een minuut staat het portaal online.
 
+6. **Controleer het resultaat** op `/status` (bv. `https://5-osexcel.vercel.app/status`).
+   Die pagina zegt in gewone taal wat er nog ontbreekt: een vergeten variabele, een
+   schema dat nog niet uitgevoerd is, of een project dat niet bereikbaar is. Ze toont
+   nooit de waarde van een instelling, enkel of ze aanwezig is.
+
+> **Variabele toegevoegd of gewijzigd?** Vercel pikt die **niet** op in een bestaande
+> build. Ga naar *Deployments*, klik op de drie puntjes bij de laatste deployment en
+> kies *Redeploy*. Sla je dit over, dan blijft `/status` hetzelfde melden en zoek je
+> je een ongeluk.
+
 Vanaf dan zet elke push naar deze branch automatisch een nieuwe versie online.
 
 > **Let op bij Preview-deployments.** Vercel maakt voor elke branch een publieke

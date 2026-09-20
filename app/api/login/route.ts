@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { controleerWachtwoord, maakSessieCookie, COOKIE_NAAM, COOKIE_MAX_LEEFTIJD, type Sessie } from '@/lib/auth';
 import { vindLeerling } from '@/lib/opslag';
+import { ConfiguratieFout } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   const { gebruikersnaam, wachtwoord } = (await request.json()) as {
@@ -17,6 +18,15 @@ export async function POST(request: Request) {
     gevonden = await vindLeerling(gebruikersnaam);
   } catch (e) {
     console.error('[login]', e);
+
+    // Een vergeten instelling is iets heel anders dan een databank die plat ligt.
+    // Door dat te onderscheiden zoekt de leerkracht niet op de verkeerde plaats.
+    if (e instanceof ConfiguratieFout) {
+      return NextResponse.json(
+        { fout: 'Het portaal is nog niet volledig ingesteld. Kijk op /status.' },
+        { status: 503 },
+      );
+    }
     return NextResponse.json(
       { fout: 'De databank is niet bereikbaar. Verwittig je leerkracht.' },
       { status: 503 },

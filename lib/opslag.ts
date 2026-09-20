@@ -228,3 +228,60 @@ export async function overzicht(klas?: string): Promise<OverzichtRij[]> {
 
   return [...rijen.values()].sort((a, b) => a.naam.localeCompare(b.naam));
 }
+
+// --- Zelfcontrole ------------------------------------------------------
+
+export type Controle = { naam: string; ok: boolean; boodschap: string };
+
+/**
+ * Controleert of de databank bereikbaar is en het schema aanwezig.
+ * Gebruikt door /status, zodat je na een deploy in één oogopslag ziet
+ * wat er nog ontbreekt.
+ */
+export async function controleerDatabank(): Promise<Controle[]> {
+  const controles: Controle[] = [];
+
+  try {
+    const { count, error } = await supabase()
+      .from('leerlingen')
+      .select('gebruikersnaam', { count: 'exact', head: true });
+
+    if (error) {
+      controles.push({ naam: 'Tabellen', ok: false, boodschap: verklaar(error.message, error.code) });
+      return controles;
+    }
+
+    controles.push({ naam: 'Tabellen', ok: true, boodschap: 'Schema aanwezig en bereikbaar.' });
+    controles.push({
+      naam: 'Accounts',
+      ok: (count ?? 0) > 0,
+      boodschap:
+        (count ?? 0) > 0
+          ? `${count} account(s) aangemaakt.`
+          : 'Nog geen accounts. Draai: node scripts/maak-leerlingen.mjs klas.csv',
+    });
+  } catch (e) {
+    controles.push({
+      naam: 'Verbinding',
+      ok: false,
+      boodschap: e instanceof Error ? verklaar(e.message) : 'Onbekende fout bij het verbinden.',
+    });
+  }
+
+  return controles;
+}
+
+/** Vertaalt een technische foutboodschap naar iets waar je mee verder kunt. */
+function verklaar(boodschap: string, code?: string): string {
+  // PGRST205: PostgREST kent de tabel niet — het schema is nog niet uitgevoerd.
+  if (code === 'PGRST205' || /does not exist|schema cache/i.test(boodschap)) {
+    return 'De tabel "leerlingen" bestaat niet. Voer supabase/schema.sql uit in de SQL Editor van Supabase.';
+  }
+  if (/fetch failed|ENOTFOUND|EAI_AGAIN|getaddrinfo/i.test(boodschap)) {
+    return 'Het project is niet bereikbaar. Controleer SUPABASE_URL op een typfout, en kijk in Supabase of het project niet gepauzeerd staat — gratis projecten pauzeren na een week zonder activiteit.';
+  }
+  if (/Invalid API key|JWT|401|403/i.test(boodschap)) {
+    return 'De sleutel wordt geweigerd. Gebruik je wel de secret key (sb_secret_...) en niet de publishable key?';
+  }
+  return `Databankfout: ${boodschap}`;
+}

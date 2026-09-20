@@ -14,6 +14,13 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 let client: SupabaseClient | null = null;
 
+/** Wordt door /api/login en /status gebruikt om een vergeten instelling te herkennen. */
+export class ConfiguratieFout extends Error {}
+
+export function supabaseIsIngesteld(): boolean {
+  return Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SECRET_KEY);
+}
+
 export function supabase(): SupabaseClient {
   if (client) return client;
 
@@ -21,7 +28,7 @@ export function supabase(): SupabaseClient {
   const secret = process.env.SUPABASE_SECRET_KEY;
 
   if (!url || !secret) {
-    throw new Error(
+    throw new ConfiguratieFout(
       'SUPABASE_URL of SUPABASE_SECRET_KEY ontbreekt. Zet ze in .env.local (lokaal) ' +
         'of bij Environment Variables in Vercel. Zie docs/backend-frontend.md.',
     );

@@ -9,11 +9,20 @@ import { cookies } from 'next/headers';
 const COOKIE = '5os_sessie';
 const MAX_LEEFTIJD = 60 * 60 * 8; // 8 uur — één schooldag
 
+export const GEHEIM_MINIMUM = 16;
+
+/** Of SESSIE_GEHEIM bruikbaar is. Gebruikt door /status om dit te melden. */
+export function geheimIsIngesteld(): boolean {
+  const geheim = process.env.SESSIE_GEHEIM;
+  return Boolean(geheim && geheim.length >= GEHEIM_MINIMUM);
+}
+
 function sessieGeheim(): string {
   const geheim = process.env.SESSIE_GEHEIM;
-  if (!geheim || geheim.length < 16) {
+  if (!geheim || geheim.length < GEHEIM_MINIMUM) {
     throw new Error(
-      'SESSIE_GEHEIM ontbreekt of is te kort. Zet een willekeurige waarde van minstens 16 tekens in .env.local',
+      `SESSIE_GEHEIM ontbreekt of is korter dan ${GEHEIM_MINIMUM} tekens. ` +
+        'Zet een willekeurige waarde in .env.local (lokaal) of bij Environment Variables in Vercel.',
     );
   }
   return geheim;
@@ -55,6 +64,14 @@ export function leesSessieCookie(waarde: string | undefined): Sessie | null {
   if (!waarde) return null;
   const [payload, handtekening] = waarde.split('.');
   if (!payload || !handtekening) return null;
+
+  // Ontbreekt het geheim, dan behandelen we de cookie als ongeldig in plaats van
+  // de pagina te laten crashen. Anders krijgt een bezoeker met een oude cookie
+  // een serverfout te zien in plaats van het aanmeldscherm.
+  if (!geheimIsIngesteld()) {
+    console.error('[auth] SESSIE_GEHEIM ontbreekt; bestaande sessies zijn ongeldig.');
+    return null;
+  }
 
   // Vergelijking in constante tijd, zodat de handtekening niet te raden valt.
   const verwacht = Buffer.from(onderteken(payload));
