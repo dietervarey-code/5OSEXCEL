@@ -1,70 +1,140 @@
 #!/usr/bin/env node
 /**
- * Maakt de leerlingentabel aan met gebruikersnamen en wachtwoorden.
+ * Maakt de accounts voor een klas aan in Supabase.
  *
  *   node scripts/maak-leerlingen.mjs klas.csv
+ *   node scripts/maak-leerlingen.mjs klas.csv --reset   (nieuwe wachtwoorden voor wie al bestaat)
  *
  * Verwacht een CSV met kolommen: naam,klas,rol
  * (rol is optioneel en is standaard "leerling"; gebruik "leerkracht" voor jezelf)
  *
- * Schrijft data/leerlingen.json met scrypt-hashes, en print één keer de
- * wachtwoorden in klare tekst zodat je ze kunt uitdelen. Daarna zijn ze weg.
+ * Wachtwoorden worden als scrypt-hash bewaard en één keer in de terminal
+ * getoond zodat je ze kunt uitdelen. Daarna zijn ze onherroepelijk weg.
  */
 import { scryptSync, randomBytes, randomInt } from 'node:crypto';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
+import { createClient } from '@supabase/supabase-js';
 
-const WOORDEN = ['appel', 'brug', 'daver', 'eiland', 'fazant', 'gracht', 'haven', 'ijzer', 'kade', 'lantaarn', 'molen', 'noord', 'oever', 'polder', 'rots', 'schans', 'toren', 'vaart', 'wilg', 'zolder'];
+// .env.local inlezen zonder extra afhankelijkheid.
+try {
+  for (const regel of readFileSync('.env.local', 'utf8').split(/\r?\n/)) {
+    const m = regel.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
+    if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^["']|["']$/g, '');
+  }
+} catch { /* geen .env.local, dan moeten de variabelen al gezet zijn */ }
 
-function hash(wachtwoord) {
-  const salt = randomBytes(16).toString('hex');
-  return `scrypt$${salt}$${scryptSync(wachtwoord, salt, 64).toString('hex')}`;
-}
+const URL = process.env.SUPABASE_URL;
+const SECRET = process.env.SUPABASE_SECRET_KEY;
 
-function maakWachtwoord() {
-  return `${WOORDEN[randomInt(WOORDEN.length)]}-${WOORDEN[randomInt(WOORDEN.length)]}-${randomInt(10, 100)}`;
-}
-
-function gebruikersnaam(naam, bestaande) {
-  const basis = naam.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z\s]/g, '').trim().split(/\s+/).join('.');
-  let kandidaat = basis;
-  let n = 2;
-  while (bestaande.has(kandidaat)) kandidaat = `${basis}${n++}`;
-  bestaande.add(kandidaat);
-  return kandidaat;
+if (!URL || !SECRET) {
+  console.error('SUPABASE_URL of SUPABASE_SECRET_KEY ontbreekt. Zet ze in .env.local.');
+  process.exit(1);
 }
 
 const csvPad = process.argv[2];
+const reset = process.argv.includes('--reset');
+
 if (!csvPad) {
-  console.error('Gebruik: node scripts/maak-leerlingen.mjs klas.csv');
+  console.error('Gebruik: node scripts/maak-leerlingen.mjs klas.csv [--reset]');
   console.error('CSV-kolommen: naam,klas,rol');
   process.exit(1);
 }
+
+const WOORDEN = ['appel', 'brug', 'daver', 'eiland', 'fazant', 'gracht', 'haven', 'ijzer', 'kade', 'lantaarn', 'molen', 'noord', 'oever', 'polder', 'rots', 'schans', 'toren', 'vaart', 'wilg', 'zolder'];
+
+const hash = (w) => {
+  const salt = randomBytes(16).toString('hex');
+  return `scrypt$${salt}$${scryptSync(w, salt, 64).toString('hex')}`;
+};
+
+const maakWachtwoord = () =>
+  `${WOORDEN[randomInt(WOORDEN.length)]}-${WOORDEN[randomInt(WOORDEN.length)]}-${randomInt(10, 100)}`;
+
+function maakGebruikersnaam(naam, bezet) {
+  const basis = naam
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z\s]/g, '')
+    .trim()
+    .split(/\s+/)
+    .join('.');
+  let kandidaat = basis;
+  let n = 2;
+  while (bezet.has(kandidaat)) kandidaat = `${basis}${n++}`;
+  bezet.add(kandidaat);
+  return kandidaat;
+}
+
+const db = createClient(URL, SECRET, { auth: { persistSession: false } });
+
+// Wie zit er al in de databank?
+const { data: bestaande, error: leesFout } = await db.from('leerlingen').select('gebruikersnaam');
+if (leesFout) {
+  console.error('Kon de tabel "leerlingen" niet lezen:', leesFout.message);
+  console.error('Heb je supabase/schema.sql al uitgevoerd in de SQL Editor?');
+  process.exit(1);
+}
+
+const bezet = new Set((bestaande ?? []).map((r) => r.gebruikersnaam));
+const alAanwezig = new Set(bezet);
 
 const regels = readFileSync(csvPad, 'utf8').trim().split(/\r?\n/);
 const kop = regels[0].toLowerCase().split(',').map((k) => k.trim());
 const kolom = (naam) => kop.indexOf(naam);
 
-const gebruikt = new Set();
-const leerlingen = [];
+if (kolom('naam') === -1) {
+  console.error('De CSV heeft geen kolom "naam". Verwachte kolommen: naam,klas,rol');
+  process.exit(1);
+}
+
+const nieuwe = [];
 const uitDelen = [];
+const overgeslagen = [];
 
 for (const regel of regels.slice(1)) {
   if (!regel.trim()) continue;
   const velden = regel.split(',').map((v) => v.trim());
   const naam = velden[kolom('naam')];
   if (!naam) continue;
-  const klas = velden[kolom('klas')] ?? '5OS';
-  const rol = velden[kolom('rol')] || 'leerling';
-  const wachtwoord = maakWachtwoord();
-  const gn = gebruikersnaam(naam, gebruikt);
 
-  leerlingen.push({ gebruikersnaam: gn, naam, klas, rol, wachtwoordHash: hash(wachtwoord) });
-  uitDelen.push({ naam, gebruikersnaam: gn, wachtwoord, klas, rol });
+  const klas = (kolom('klas') !== -1 && velden[kolom('klas')]) || '5OS';
+  const rol = (kolom('rol') !== -1 && velden[kolom('rol')]) || 'leerling';
+
+  // Bestaat deze leerling al? Dan niet zomaar overschrijven.
+  const voorspeld = maakGebruikersnaam(naam, new Set());
+  if (alAanwezig.has(voorspeld) && !reset) {
+    overgeslagen.push(voorspeld);
+    continue;
+  }
+
+  const gebruikersnaam = alAanwezig.has(voorspeld) ? voorspeld : maakGebruikersnaam(naam, bezet);
+  const wachtwoord = maakWachtwoord();
+
+  nieuwe.push({ gebruikersnaam, naam, klas, rol, wachtwoord_hash: hash(wachtwoord) });
+  uitDelen.push({ naam, gebruikersnaam, wachtwoord, klas, rol });
 }
 
-writeFileSync('data/leerlingen.json', JSON.stringify(leerlingen, null, 2));
+if (nieuwe.length === 0) {
+  console.log('Niets te doen.');
+  if (overgeslagen.length) {
+    console.log(`${overgeslagen.length} account(s) bestonden al. Gebruik --reset voor nieuwe wachtwoorden.`);
+  }
+  process.exit(0);
+}
 
-console.log(`\n${leerlingen.length} accounts aangemaakt in data/leerlingen.json\n`);
-console.log('Deel deze gegevens uit — ze worden nergens bewaard en zijn hierna onherstelbaar:\n');
+const { error: schrijfFout } = await db
+  .from('leerlingen')
+  .upsert(nieuwe, { onConflict: 'gebruikersnaam' });
+
+if (schrijfFout) {
+  console.error('Wegschrijven mislukte:', schrijfFout.message);
+  process.exit(1);
+}
+
+console.log(`\n${nieuwe.length} account(s) aangemaakt of bijgewerkt.`);
+if (overgeslagen.length) {
+  console.log(`${overgeslagen.length} bestonden al en bleven ongewijzigd: ${overgeslagen.join(', ')}`);
+}
+console.log('\nDeel deze gegevens uit — ze worden nergens bewaard en zijn hierna onherstelbaar:\n');
 console.table(uitDelen);

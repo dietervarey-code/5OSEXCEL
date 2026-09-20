@@ -1,20 +1,6 @@
 import { NextResponse } from 'next/server';
-import { promises as fs } from 'node:fs';
-import path from 'node:path';
 import { controleerWachtwoord, maakSessieCookie, COOKIE_NAAM, COOKIE_MAX_LEEFTIJD, type Sessie } from '@/lib/auth';
-
-type Leerling = {
-  gebruikersnaam: string;
-  naam: string;
-  klas: string;
-  rol: 'leerling' | 'leerkracht';
-  wachtwoordHash: string;
-};
-
-async function leerlingen(): Promise<Leerling[]> {
-  const pad = path.join(process.cwd(), 'data', 'leerlingen.json');
-  return JSON.parse(await fs.readFile(pad, 'utf8')) as Leerling[];
-}
+import { vindLeerling } from '@/lib/opslag';
 
 export async function POST(request: Request) {
   const { gebruikersnaam, wachtwoord } = (await request.json()) as {
@@ -26,8 +12,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ fout: 'Vul je gebruikersnaam en wachtwoord in.' }, { status: 400 });
   }
 
-  const lijst = await leerlingen();
-  const gevonden = lijst.find((l) => l.gebruikersnaam.toLowerCase() === gebruikersnaam.toLowerCase().trim());
+  let gevonden;
+  try {
+    gevonden = await vindLeerling(gebruikersnaam);
+  } catch (e) {
+    console.error('[login]', e);
+    return NextResponse.json(
+      { fout: 'De databank is niet bereikbaar. Verwittig je leerkracht.' },
+      { status: 503 },
+    );
+  }
 
   // Bewust dezelfde boodschap voor "bestaat niet" en "fout wachtwoord",
   // anders kun je uitvissen welke gebruikersnamen bestaan.

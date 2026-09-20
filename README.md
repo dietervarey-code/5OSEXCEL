@@ -26,42 +26,25 @@ genoeg is voor deze cursus, vóór er een heel portaal omheen gebouwd wordt.
 | Draaitabellen (Focus 7) | **Nog niet getest.** Zit in de commerciële uitbreiding van Univer, niet in het open-source deel. Hier is een aparte beslissing nodig. |
 | Afdrukinstellingen (Focus 3) | **Nog niet getest.** Marges, kop-/voettekst en "alles op één pagina" bestaan niet op dezelfde manier in de browser. Mogelijk een aparte oefenvorm nodig. |
 | Grafieken (Focus 4) | Nog niet getest. |
-| Opslag | Nu één JSON-bestand op schijf (`lib/opslag.ts`). Werkt alleen lokaal; wordt Supabase in fase 2. |
+| Opslag | Supabase (Postgres). Zie `docs/backend-frontend.md` voor het opzetten. |
 | Nakijken vervalsen | Een leerling die de ontwikkelaarsconsole kent, kan een verzonnen antwoord naar de server sturen. De oplossingssleutel lekt niet, maar de score is niet fraudebestendig. Voor punten die echt meetellen: laat de toets klassikaal afleggen. |
 
 ## Aan de slag
 
+Je hebt een Supabase-project nodig. Het volledige stappenplan staat in
+**[`docs/backend-frontend.md`](docs/backend-frontend.md)**; kort samengevat:
+
 ```bash
 npm install
-echo "SESSIE_GEHEIM=$(openssl rand -hex 32)" > .env.local
-npm run dev          # http://localhost:3000
+cp .env.example .env.local        # SUPABASE_URL, SUPABASE_SECRET_KEY, SESSIE_GEHEIM invullen
+# supabase/schema.sql uitvoeren in de SQL Editor van Supabase
+node scripts/maak-leerlingen.mjs klas5os.csv
+npm run dev                       # http://localhost:3000
 ```
 
-### Demo-accounts
-
-| Gebruikersnaam | Wachtwoord | Rol |
-|---|---|---|
-| `dieter.varey` | `demo-leerkracht` | leerkracht |
-| `lotte.desmet` | `demo-lotte` | leerling |
-
-Vervang die vóór echt gebruik.
-
-### Eigen klas aanmaken
-
-Maak een CSV met de kolommen `naam,klas,rol`:
-
-```csv
-naam,klas,rol
-Dieter Varey,5OS,leerkracht
-Lotte Desmet,5OS,leerling
-```
-
-```bash
-node scripts/maak-leerlingen.mjs klas.csv
-```
-
-Dat schrijft `data/leerlingen.json` met scrypt-hashes en toont de wachtwoorden **één
-keer** in de terminal. Kopieer ze dan meteen — ze worden nergens bewaard.
+De CSV heeft de kolommen `naam,klas,rol`. Het script toont de wachtwoorden **één keer**
+in de terminal — kopieer ze meteen, ze worden als scrypt-hash bewaard en zijn daarna
+niet meer op te vragen.
 
 ## Hoe het in elkaar zit
 
@@ -72,14 +55,18 @@ app/
   leerkracht/page.tsx       opvolging
   api/nakijken/             nakijken op de server (sleutel blijft hier)
   api/gebeurtenissen/       schermgebruik registreren
+  api/login/                aanmelden tegen de tabel leerlingen
 components/
   Werkblad.tsx              Univer, met Nederlandse functienamen
   OefeningWerkruimte.tsx    opdracht + rekenblad + feedback
 lib/
   nl-functies.ts            SOM, ALS, VERT.ZOEKEN … als echte functies
-  nakijken.ts               checks uitvoeren  (server-only)
+  nakijken.ts               checks uitvoeren      (server-only)
   telemetrie.ts             schermgebruik meten
-  opslag.ts                 tijdelijke opslag  → wordt Supabase
+  supabase.ts               verbinding            (server-only)
+  opslag.ts                 alle databanktoegang  (server-only)
+supabase/
+  schema.sql                tabellen en afscherming
 data/oefeningen/
   factuur.opgave.ts         startbestand + opdracht (gaat naar de browser)
   factuur.sleutel.ts        antwoordsleutel     (server-only)
@@ -121,6 +108,5 @@ klassikaal inzet.
 ## Volgende stappen
 
 1. `nl-NL`-vertaling van de menubalk
-2. Supabase koppelen (zie `docs/backend-frontend.md`)
-3. Uitzoeken wat er kan met draaitabellen en afdrukinstellingen
-4. Oefeningen 2 t.e.m. 7 uit `docs/leerlijn.md`
+2. Uitzoeken wat er kan met draaitabellen (Focus 7) en afdrukinstellingen (Focus 3)
+3. Oefeningen 2 t.e.m. 7 uit `docs/leerlijn.md`

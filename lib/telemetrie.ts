@@ -11,7 +11,7 @@ export type Samenvatting = {
   actiefMs: number;
 };
 
-type Uitgaand = { pogingId: string; soort: string; tijdstip: number; duurMs?: number };
+type Uitgaand = { sessieId: string; soort: string; tijdstip: number; duurMs?: number };
 
 const HARTSLAG_MS = 30_000;
 const VERSTUUR_MS = 10_000;
@@ -23,38 +23,43 @@ const VERSTUUR_MS = 10_000;
  * hoe vaak. Wat dit NIET ziet: wat er in een ander venster gebeurt, of wat er
  * op een tweede scherm of gsm staat. Het is dus een indicatie, geen bewijs.
  */
-export function useTelemetrie(pogingId: string, actief: boolean) {
+export function useTelemetrie(sessieId: string | null, actief: boolean) {
   const [samenvatting, setSamenvatting] = useState<Samenvatting>({ keerWeg: 0, wegMs: 0, actiefMs: 0 });
   const wachtrij = useRef<Uitgaand[]>([]);
   const verborgenSinds = useRef<number | null>(null);
   const gestartOp = useRef<number>(Date.now());
 
   useEffect(() => {
-    if (!actief) return;
+    if (!actief || !sessieId) return;
+
+    // In een const, zodat TypeScript de smallere typering ook binnen de
+    // hieronder gedeclareerde functies behoudt.
+    const sessie = sessieId;
+
     gestartOp.current = Date.now();
-    wachtrij.current.push({ pogingId, soort: 'gestart', tijdstip: Date.now() });
+    wachtrij.current.push({ sessieId: sessie, soort: 'gestart', tijdstip: Date.now() });
 
     function opVisibility() {
       if (document.hidden) {
         verborgenSinds.current = Date.now();
-        wachtrij.current.push({ pogingId, soort: 'verborgen', tijdstip: Date.now() });
+        wachtrij.current.push({ sessieId: sessie, soort: 'verborgen', tijdstip: Date.now() });
         setSamenvatting((s) => ({ ...s, keerWeg: s.keerWeg + 1 }));
       } else {
         const duurMs = verborgenSinds.current ? Date.now() - verborgenSinds.current : 0;
         verborgenSinds.current = null;
-        wachtrij.current.push({ pogingId, soort: 'zichtbaar', tijdstip: Date.now(), duurMs });
+        wachtrij.current.push({ sessieId: sessie, soort: 'zichtbaar', tijdstip: Date.now(), duurMs });
         setSamenvatting((s) => ({ ...s, wegMs: s.wegMs + duurMs }));
       }
     }
 
     function opBlur() {
-      wachtrij.current.push({ pogingId, soort: 'focus_weg', tijdstip: Date.now() });
+      wachtrij.current.push({ sessieId: sessie, soort: 'focus_weg', tijdstip: Date.now() });
     }
     function opFocus() {
-      wachtrij.current.push({ pogingId, soort: 'focus_terug', tijdstip: Date.now() });
+      wachtrij.current.push({ sessieId: sessie, soort: 'focus_terug', tijdstip: Date.now() });
     }
     function opPaste() {
-      wachtrij.current.push({ pogingId, soort: 'geplakt', tijdstip: Date.now() });
+      wachtrij.current.push({ sessieId: sessie, soort: 'geplakt', tijdstip: Date.now() });
     }
 
     document.addEventListener('visibilitychange', opVisibility);
@@ -63,7 +68,7 @@ export function useTelemetrie(pogingId: string, actief: boolean) {
     window.addEventListener('paste', opPaste);
 
     const hartslag = setInterval(() => {
-      if (!document.hidden) wachtrij.current.push({ pogingId, soort: 'hartslag', tijdstip: Date.now() });
+      if (!document.hidden) wachtrij.current.push({ sessieId: sessie, soort: 'hartslag', tijdstip: Date.now() });
       setSamenvatting((s) => ({ ...s, actiefMs: Date.now() - gestartOp.current }));
     }, HARTSLAG_MS);
 
@@ -105,7 +110,7 @@ export function useTelemetrie(pogingId: string, actief: boolean) {
       clearInterval(spoelen);
       void spoel();
     };
-  }, [pogingId, actief]);
+  }, [sessieId, actief]);
 
   return samenvatting;
 }

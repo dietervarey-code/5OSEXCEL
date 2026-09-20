@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import type { Opgave, CelInzending } from '@/lib/werkblad-types';
 import { useTelemetrie } from '@/lib/telemetrie';
@@ -14,7 +14,8 @@ const Werkblad = dynamic(() => import('@/components/Werkblad'), {
 type Resultaat = {
   score: number;
   maxScore: number;
-  pogingNummer: number;
+  pogingNummer: number | null;
+  waarschuwing?: string;
   resultaten: { checkId: string; omschrijving: string; punten: number; behaald: boolean; feedback: string }[];
 };
 
@@ -24,14 +25,23 @@ function duur(ms: number): string {
   return minuten > 0 ? `${minuten} min ${seconden}s` : `${seconden}s`;
 }
 
-export default function OefeningWerkruimte({ opgave, naam }: { opgave: Opgave; naam: string }) {
-  const pogingId = useMemo(() => `${opgave.id}_${Date.now()}`, [opgave.id]);
+export default function OefeningWerkruimte({
+  opgave,
+  naam,
+  sessieId,
+  opslagFout,
+}: {
+  opgave: Opgave;
+  naam: string;
+  sessieId: string | null;
+  opslagFout: string | null;
+}) {
   const lezer = useRef<(() => CelInzending[]) | null>(null);
   const [resultaat, setResultaat] = useState<Resultaat | null>(null);
   const [bezig, setBezig] = useState(false);
   const [fout, setFout] = useState<string | null>(null);
 
-  const meting = useTelemetrie(pogingId, true);
+  const meting = useTelemetrie(sessieId, true);
 
   const opGereed = useCallback((lees: () => CelInzending[]) => {
     lezer.current = lees;
@@ -45,7 +55,7 @@ export default function OefeningWerkruimte({ opgave, naam }: { opgave: Opgave; n
       const antwoord = await fetch('/api/nakijken', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ oefeningId: opgave.id, inzending: lezer.current() }),
+        body: JSON.stringify({ oefeningId: opgave.id, sessieId, inzending: lezer.current() }),
       });
       if (!antwoord.ok) throw new Error('Nakijken lukte niet. Ben je nog aangemeld?');
       setResultaat(await antwoord.json());
@@ -88,13 +98,18 @@ export default function OefeningWerkruimte({ opgave, naam }: { opgave: Opgave; n
             {bezig ? 'Nakijken…' : 'Nakijken'}
           </button>
 
+          {opslagFout && <div className="melding waarschuwing" style={{ marginTop: '0.8rem' }}>{opslagFout}</div>}
           {fout && <div className="melding fout" style={{ marginTop: '0.8rem' }}>{fout}</div>}
 
           {resultaat && (
             <section style={{ marginTop: '1.2rem' }}>
               <h3>
-                Poging {resultaat.pogingNummer} — {resultaat.score} / {resultaat.maxScore}
+                {resultaat.pogingNummer ? `Poging ${resultaat.pogingNummer} — ` : ''}
+                {resultaat.score} / {resultaat.maxScore}
               </h3>
+              {resultaat.waarschuwing && (
+                <div className="melding waarschuwing">{resultaat.waarschuwing}</div>
+              )}
               <div style={{ display: 'grid', gap: '0.5rem', marginTop: '0.6rem' }}>
                 {resultaat.resultaten.map((r) => (
                   <div key={r.checkId} className={`melding ${r.behaald ? 'goed' : 'fout'}`}>

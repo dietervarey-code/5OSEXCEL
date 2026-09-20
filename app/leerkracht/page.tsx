@@ -1,108 +1,96 @@
 import { redirect } from 'next/navigation';
 import { huidigeSessie } from '@/lib/auth';
-import { allePogingen, alleGebeurtenissen } from '@/lib/opslag';
+import { overzicht, type OverzichtRij } from '@/lib/opslag';
 
 export const dynamic = 'force-dynamic';
 
 function duur(ms: number): string {
-  if (!ms) return '—';
+  if (!ms || ms < 1000) return '—';
   const m = Math.floor(ms / 60000);
   const s = Math.floor((ms % 60000) / 1000);
   return m > 0 ? `${m}m ${s}s` : `${s}s`;
 }
 
+function scoreKleur(rij: OverzichtRij): string {
+  if (rij.besteScore === null || !rij.maxScore) return '';
+  const verhouding = rij.besteScore / rij.maxScore;
+  return verhouding >= 0.8 ? 'goed' : verhouding >= 0.5 ? 'waarschuwing' : 'fout';
+}
+
 export default async function Leerkracht() {
-  const sessie = await huidigeSessie();
-  if (!sessie) redirect('/');
-  if (sessie.rol !== 'leerkracht') redirect('/oefenen');
+  const aangemeld = await huidigeSessie();
+  if (!aangemeld) redirect('/');
+  if (aangemeld.rol !== 'leerkracht') redirect('/oefenen');
 
-  const [pogingen, gebeurtenissen] = await Promise.all([allePogingen(), alleGebeurtenissen()]);
-
-  // Per leerling samenvatten: beste score, aantal pogingen, weggeklikt, tijd weg.
-  const perLeerling = new Map<string, {
-    naam: string;
-    klas: string;
-    pogingen: number;
-    besteScore: number | null;
-    maxScore: number | null;
-    laatsteOp: number | null;
-    keerWeg: number;
-    wegMs: number;
-  }>();
-
-  for (const p of pogingen) {
-    const rij = perLeerling.get(p.gebruikersnaam) ?? {
-      naam: p.naam, klas: p.klas, pogingen: 0, besteScore: null, maxScore: null,
-      laatsteOp: null, keerWeg: 0, wegMs: 0,
-    };
-    rij.pogingen += 1;
-    if (p.score !== null) rij.besteScore = Math.max(rij.besteScore ?? 0, p.score);
-    rij.maxScore = p.maxScore;
-    rij.laatsteOp = Math.max(rij.laatsteOp ?? 0, p.ingediendOp ?? p.gestartOp);
-    perLeerling.set(p.gebruikersnaam, rij);
+  let rijen: OverzichtRij[] = [];
+  let fout: string | null = null;
+  try {
+    rijen = await overzicht(aangemeld.klas);
+  } catch (e) {
+    console.error('[leerkracht]', e);
+    fout = e instanceof Error ? e.message : 'Het overzicht kon niet geladen worden.';
   }
 
-  for (const g of gebeurtenissen) {
-    const rij = perLeerling.get(g.gebruikersnaam);
-    if (!rij) continue;
-    if (g.soort === 'verborgen') rij.keerWeg += 1;
-    if (g.soort === 'zichtbaar' && g.duurMs) rij.wegMs += g.duurMs;
-  }
-
-  const rijen = [...perLeerling.entries()].sort((a, b) => a[1].naam.localeCompare(b[1].naam));
+  const metWerk = rijen.filter((r) => r.pogingen > 0);
 
   return (
     <main style={{ maxWidth: 1100, margin: '0 auto', padding: '1.5rem' }}>
       <header className="balk" style={{ borderRadius: 10, border: '1px solid var(--rand)', marginBottom: '1.2rem' }}>
         <div>
-          <h1 style={{ marginBottom: 0 }}>Opvolging 5OS Excel</h1>
-          <span className="gedempt">Oefening: Factuur vervolledigen</span>
+          <h1 style={{ marginBottom: 0 }}>Opvolging {aangemeld.klas} Excel</h1>
+          <span className="gedempt">
+            Oefening: Factuur vervolledigen · {metWerk.length} van {rijen.length} leerlingen begonnen
+          </span>
         </div>
         <form action="/api/uitloggen" method="post">
           <button type="submit">Afmelden</button>
         </form>
       </header>
 
+      {fout && <div className="melding fout" style={{ marginBottom: '1rem' }}>{fout}</div>}
+
       <div className="kaart">
-        {rijen.length === 0 ? (
+        {rijen.length === 0 && !fout ? (
           <p className="gedempt" style={{ margin: 0 }}>
-            Nog geen resultaten. Zodra een leerling op Nakijken klikt, verschijnt die hier.
+            Nog geen leerlingen in deze klas. Maak ze aan met{' '}
+            <code>node scripts/maak-leerlingen.mjs klas.csv</code>.
           </p>
         ) : (
           <table>
             <thead>
               <tr>
                 <th>Leerling</th>
-                <th>Klas</th>
                 <th>Beste score</th>
                 <th>Pogingen</th>
+                <th>Werktijd</th>
                 <th>Weggeklikt</th>
                 <th>Tijd weg</th>
                 <th>Laatst actief</th>
               </tr>
             </thead>
             <tbody>
-              {rijen.map(([gebruikersnaam, r]) => {
-                const verhouding = r.besteScore !== null && r.maxScore ? r.besteScore / r.maxScore : 0;
-                const kleur = verhouding >= 0.8 ? 'goed' : verhouding >= 0.5 ? 'waarschuwing' : 'fout';
-                return (
-                  <tr key={gebruikersnaam}>
-                    <td><strong>{r.naam}</strong></td>
-                    <td>{r.klas}</td>
-                    <td>
-                      {r.besteScore === null ? '—' : (
-                        <span className={`badge ${kleur}`}>{r.besteScore}/{r.maxScore}</span>
-                      )}
-                    </td>
-                    <td>{r.pogingen}</td>
-                    <td>{r.keerWeg === 0 ? '—' : `${r.keerWeg}×`}</td>
-                    <td>{duur(r.wegMs)}</td>
-                    <td className="gedempt">
-                      {r.laatsteOp ? new Date(r.laatsteOp).toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' }) : '—'}
-                    </td>
-                  </tr>
-                );
-              })}
+              {rijen.map((r) => (
+                <tr key={r.gebruikersnaam}>
+                  <td>
+                    <strong>{r.naam}</strong>
+                    {r.pogingen === 0 && <span className="gedempt"> · nog niet begonnen</span>}
+                  </td>
+                  <td>
+                    {r.besteScore === null ? '—' : (
+                      <span className={`badge ${scoreKleur(r)}`}>{r.besteScore}/{r.maxScore}</span>
+                    )}
+                  </td>
+                  <td>{r.pogingen || '—'}</td>
+                  <td>{duur(r.werktijdMs)}</td>
+                  <td>{r.keerWeg === 0 ? '—' : `${r.keerWeg}×`}</td>
+                  <td>{duur(r.wegMs)}</td>
+                  <td className="gedempt">
+                    {r.laatsteOp
+                      ? new Date(r.laatsteOp).toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' })
+                      : '—'}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         )}

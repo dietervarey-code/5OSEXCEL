@@ -7,5 +7,6 @@ next-env.d.ts
 .env.local
 .DS_Store
 
-# Lokale opslag van de technische proef (wordt vervangen door Supabase)
+# Lokale klasgegevens en sleutels
 data/opslag.json
+klas*.csv
