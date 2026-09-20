@@ -1,0 +1,105 @@
+:root {
+  --achtergrond: #f4f6fa;
+  --kaart: #ffffff;
+  --rand: #d8dee9;
+  --tekst: #16202e;
+  --gedempt: #5d6b80;
+  --accent: #1f6feb;
+  --accent-donker: #1554b8;
+  --goed: #1a7f45;
+  --goed-zacht: #e6f4ec;
+  --fout: #b42318;
+  --fout-zacht: #fdeceb;
+  --waarschuwing: #9a6700;
+  --waarschuwing-zacht: #fff8e6;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--achtergrond);
+  color: var(--tekst);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+h1, h2, h3 { line-height: 1.25; margin: 0 0 0.5rem; }
+h1 { font-size: 1.5rem; }
+h2 { font-size: 1.1rem; }
+h3 { font-size: 0.95rem; }
+
+a { color: var(--accent); }
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border-radius: 6px;
+  border: 1px solid var(--rand);
+  background: var(--kaart);
+  padding: 0.5rem 0.9rem;
+}
+button:hover { background: #eef2f8; }
+button.primair {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+button.primair:hover { background: var(--accent-donker); }
+button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+input {
+  font: inherit;
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--rand);
+  border-radius: 6px;
+  background: #fff;
+}
+input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.3rem; }
+
+.kaart {
+  background: var(--kaart);
+  border: 1px solid var(--rand);
+  border-radius: 10px;
+  padding: 1.1rem;
+}
+
+.balk {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 1.2rem;
+  background: var(--kaart);
+  border-bottom: 1px solid var(--rand);
+}
+
+.gedempt { color: var(--gedempt); font-size: 0.86rem; }
+
+table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+th, td { text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--rand); }
+th { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--gedempt); }
+tbody tr:hover { background: #f7f9fc; }
+
+.melding { border-radius: 8px; padding: 0.7rem 0.9rem; font-size: 0.88rem; }
+.melding.goed { background: var(--goed-zacht); color: var(--goed); }
+.melding.fout { background: var(--fout-zacht); color: var(--fout); }
+.melding.waarschuwing { background: var(--waarschuwing-zacht); color: var(--waarschuwing); }
+
+.badge {
+  display: inline-block;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.badge.goed { background: var(--goed-zacht); color: var(--goed); }
+.badge.fout { background: var(--fout-zacht); color: var(--fout); }
+.badge.waarschuwing { background: var(--waarschuwing-zacht); color: var(--waarschuwing); }
