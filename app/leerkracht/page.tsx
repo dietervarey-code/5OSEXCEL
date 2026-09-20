@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { huidigeSessie } from '@/lib/auth';
 import { overzicht, type OverzichtRij } from '@/lib/opslag';
@@ -42,9 +43,12 @@ export default async function Leerkracht() {
             Oefening: Factuur vervolledigen · {metWerk.length} van {rijen.length} leerlingen begonnen
           </span>
         </div>
-        <form action="/api/uitloggen" method="post">
-          <button type="submit">Afmelden</button>
-        </form>
+        <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+          <Link href="/leerkracht/leerlingen">Leerlingen beheren →</Link>
+          <form action="/api/uitloggen" method="post">
+            <button type="submit">Afmelden</button>
+          </form>
+        </div>
       </header>
 
       {fout && <div className="melding fout" style={{ marginBottom: '1rem' }}>{fout}</div>}

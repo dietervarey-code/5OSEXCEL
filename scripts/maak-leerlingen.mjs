@@ -11,9 +11,10 @@
  * Wachtwoorden worden als scrypt-hash bewaard en één keer in de terminal
  * getoond zodat je ze kunt uitdelen. Daarna zijn ze onherroepelijk weg.
  */
-import { scryptSync, randomBytes, randomInt } from 'node:crypto';
+import { scryptSync, randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { createClient } from '@supabase/supabase-js';
+import { maakGebruikersnaam, maakWachtwoord } from '../lib/accounts.mjs';
 
 // .env.local inlezen zonder extra afhankelijkheid.
 try {
@@ -40,31 +41,10 @@ if (!csvPad) {
   process.exit(1);
 }
 
-const WOORDEN = ['appel', 'brug', 'daver', 'eiland', 'fazant', 'gracht', 'haven', 'ijzer', 'kade', 'lantaarn', 'molen', 'noord', 'oever', 'polder', 'rots', 'schans', 'toren', 'vaart', 'wilg', 'zolder'];
-
 const hash = (w) => {
   const salt = randomBytes(16).toString('hex');
   return `scrypt$${salt}$${scryptSync(w, salt, 64).toString('hex')}`;
 };
-
-const maakWachtwoord = () =>
-  `${WOORDEN[randomInt(WOORDEN.length)]}-${WOORDEN[randomInt(WOORDEN.length)]}-${randomInt(10, 100)}`;
-
-function maakGebruikersnaam(naam, bezet) {
-  const basis = naam
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z\s]/g, '')
-    .trim()
-    .split(/\s+/)
-    .join('.');
-  let kandidaat = basis;
-  let n = 2;
-  while (bezet.has(kandidaat)) kandidaat = `${basis}${n++}`;
-  bezet.add(kandidaat);
-  return kandidaat;
-}
 
 const db = createClient(URL, SECRET, { auth: { persistSession: false } });
 
@@ -102,7 +82,7 @@ for (const regel of regels.slice(1)) {
   const rol = (kolom('rol') !== -1 && velden[kolom('rol')]) || 'leerling';
 
   // Bestaat deze leerling al? Dan niet zomaar overschrijven.
-  const voorspeld = maakGebruikersnaam(naam, new Set());
+  const voorspeld = maakGebruikersnaam(naam);
   if (alAanwezig.has(voorspeld) && !reset) {
     overgeslagen.push(voorspeld);
     continue;

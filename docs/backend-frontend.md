@@ -47,6 +47,7 @@ databanksleutel: alles loopt via de server. Dat is precies de bedoeling — zie 
    | `SUPABASE_URL` | je Project URL |
    | `SUPABASE_SECRET_KEY` | je secret key |
    | `SESSIE_GEHEIM` | een willekeurige reeks van 32+ tekens |
+   | `SETUP_SLEUTEL` | tijdelijk, om je eerste login te maken — zie stap 3 |
 
    Voor `SESSIE_GEHEIM`: `openssl rand -hex 32` in een terminal, of eender welke
    lange willekeurige reeks. Verander hem niet zonder reden — iedereen wordt dan afgemeld.
@@ -74,39 +75,60 @@ Vanaf dan zet elke push naar deze branch automatisch een nieuwe versie online.
 
 ---
 
-## 3. Je klas aanmaken
+## 3. Je eigen login aanmaken
 
-Lokaal, één keer:
+Kip en ei: het beheer zit achter een leerkrachtlogin, en die bestaat nog niet. Daarom is
+er een eenmalige `/setup`-pagina.
+
+1. Zet in Vercel een extra variabele **`SETUP_SLEUTEL`** met een zelfgekozen waarde van
+   minstens 8 tekens.
+2. *Deployments* → drie puntjes → **Redeploy**.
+3. Ga naar `https://jouwsite.vercel.app/setup`, vul die sleutel in, je naam, je klas en
+   een wachtwoord naar keuze. Je gebruikersnaam wordt automatisch gemaakt
+   (Dieter Varey wordt `dieter.varey`).
+4. **Haal `SETUP_SLEUTEL` daarna weg in Vercel** en doe nog een Redeploy.
+
+De pagina heeft twee sloten: zonder de juiste sleutel gebeurt er niets, en zodra er één
+leerkracht bestaat weigert ze sowieso. Toch is het netter de variabele weg te halen —
+dan is de route helemaal dood.
+
+## 4. Je klas aanmaken
+
+Meld je aan en klik op **Leerlingen beheren**. Plak de namen van je klas in het
+tekstvak, één per lijn:
+
+```
+Lotte Desmet
+Youssef El Amrani
+Noor Vandenberghe
+```
+
+Je krijgt meteen een tabel met gebruikersnaam en wachtwoord per leerling, met knoppen om
+ze te kopiëren of af te drukken. **Die wachtwoorden zie je maar één keer** — ze worden als
+scrypt-hash bewaard en zijn daarna niet meer op te vragen, wel opnieuw in te stellen.
+
+Verder op die pagina:
+
+- **Nieuw wachtwoord** per leerling, voor wie het zijne kwijt is.
+- **Verwijderen**, dat ook alle scores en metingen van die leerling meeneemt. Je eigen
+  account kun je niet verwijderen.
+
+Dubbele namen krijgen automatisch een cijfer (`lotte.desmet`, `lotte.desmet2`), en
+accenten verdwijnen uit de gebruikersnaam omdat die lastig zijn op een schoolklavier.
+
+### Liever vanaf de commandolijn
+
+Kan ook, met een CSV met kolommen `naam,klas,rol`:
 
 ```bash
-cp .env.example .env.local     # en de drie waarden invullen
+cp .env.example .env.local     # de drie waarden invullen
 npm install
-```
-
-CSV met je klas (`klas5os.csv`, staat in `.gitignore`):
-
-```csv
-naam,klas,rol
-Dieter Varey,5OS,leerkracht
-Lotte Desmet,5OS,leerling
-Youssef El Amrani,5OS,leerling
-```
-
-```bash
 node scripts/maak-leerlingen.mjs klas5os.csv
 ```
 
-Het script toont de wachtwoorden **één keer** in een tabel. Kopieer ze meteen — ze
-worden als scrypt-hash bewaard en zijn daarna niet meer op te vragen. Een leerling die
-zijn wachtwoord kwijt is, krijgt een nieuw via `--reset`:
-
-```bash
-node scripts/maak-leerlingen.mjs enkel-die-ene.csv --reset
-```
-
-Draai je het script een tweede keer met dezelfde CSV zonder `--reset`, dan blijven
-bestaande accounts ongemoeid. Zo overschrijf je niet per ongeluk de wachtwoorden van
-een halve klas midden in het schooljaar.
+Bestaande accounts blijven ongemoeid; pas met `--reset` krijgen ze een nieuw wachtwoord.
+Beide wegen gebruiken dezelfde regels, dus een leerling krijgt via het script dezelfde
+gebruikersnaam als via het portaal.
 
 ---
 

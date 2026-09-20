@@ -285,3 +285,91 @@ function verklaar(boodschap: string, code?: string): string {
   }
   return `Databankfout: ${boodschap}`;
 }
+
+// --- Accountbeheer -----------------------------------------------------
+
+export type LeerlingOverzicht = {
+  gebruikersnaam: string;
+  naam: string;
+  klas: string;
+  rol: Rol;
+  aangemaaktOp: number;
+};
+
+export async function lijstLeerlingen(klas?: string): Promise<LeerlingOverzicht[]> {
+  let query = supabase()
+    .from('leerlingen')
+    .select('gebruikersnaam, naam, klas, rol, aangemaakt_op')
+    .order('naam');
+
+  if (klas) query = query.eq('klas', klas);
+
+  const { data, error } = await query;
+  if (error) throw new Error(`Leerlingen ophalen mislukte: ${error.message}`);
+
+  return (data ?? []).map((r) => ({
+    gebruikersnaam: r.gebruikersnaam,
+    naam: r.naam,
+    klas: r.klas,
+    rol: r.rol as Rol,
+    aangemaaktOp: new Date(r.aangemaakt_op).getTime(),
+  }));
+}
+
+export async function telLeerkrachten(): Promise<number> {
+  const { count, error } = await supabase()
+    .from('leerlingen')
+    .select('gebruikersnaam', { count: 'exact', head: true })
+    .eq('rol', 'leerkracht');
+
+  if (error) throw new Error(`Leerkrachten tellen mislukte: ${error.message}`);
+  return count ?? 0;
+}
+
+/** Alle gebruikersnamen die al bezet zijn — nodig om dubbels te vermijden. */
+export async function bezetteGebruikersnamen(): Promise<Set<string>> {
+  const { data, error } = await supabase().from('leerlingen').select('gebruikersnaam');
+  if (error) throw new Error(`Gebruikersnamen ophalen mislukte: ${error.message}`);
+  return new Set((data ?? []).map((r) => r.gebruikersnaam as string));
+}
+
+export async function voegLeerlingenToe(
+  rijen: { gebruikersnaam: string; naam: string; klas: string; rol: Rol; wachtwoordHash: string }[],
+): Promise<void> {
+  if (rijen.length === 0) return;
+
+  const { error } = await supabase().from('leerlingen').insert(
+    rijen.map((r) => ({
+      gebruikersnaam: r.gebruikersnaam,
+      naam: r.naam,
+      klas: r.klas,
+      rol: r.rol,
+      wachtwoord_hash: r.wachtwoordHash,
+    })),
+  );
+
+  if (error) throw new Error(`Accounts aanmaken mislukte: ${error.message}`);
+}
+
+export async function zetWachtwoord(gebruikersnaam: string, wachtwoordHash: string): Promise<boolean> {
+  const { data, error } = await supabase()
+    .from('leerlingen')
+    .update({ wachtwoord_hash: wachtwoordHash })
+    .eq('gebruikersnaam', gebruikersnaam)
+    .select('gebruikersnaam');
+
+  if (error) throw new Error(`Wachtwoord wijzigen mislukte: ${error.message}`);
+  return (data ?? []).length > 0;
+}
+
+/** Verwijdert het account. Sessies, pogingen en metingen gaan via cascade mee. */
+export async function verwijderLeerling(gebruikersnaam: string): Promise<boolean> {
+  const { data, error } = await supabase()
+    .from('leerlingen')
+    .delete()
+    .eq('gebruikersnaam', gebruikersnaam)
+    .select('gebruikersnaam');
+
+  if (error) throw new Error(`Verwijderen mislukte: ${error.message}`);
+  return (data ?? []).length > 0;
+}

@@ -10,6 +10,7 @@ genoeg is voor deze cursus, vóór er een heel portaal omheen gebouwd wordt.
 
 ## Wat werkt
 
+- Accountbeheer in het portaal zelf: namen plakken, wachtwoorden krijgen, opnieuw instellen
 - Aanmelden met gebruikersnaam en wachtwoord uit een tabel die de leerkracht beheert
 - Rekenblad in de browser ([Univer](https://github.com/dream-num/univer), Apache-2.0) met lint, formulebalk, celopmaak en meerdere bladen
 - **Nederlandse functienamen**: `=SOM()`, `=ALS()`, `=VERT.ZOEKEN()`, `=AANTAL.ALS()` … werken zoals in de cursus
@@ -42,9 +43,13 @@ node scripts/maak-leerlingen.mjs klas5os.csv
 npm run dev                       # http://localhost:3000
 ```
 
-De CSV heeft de kolommen `naam,klas,rol`. Het script toont de wachtwoorden **één keer**
-in de terminal — kopieer ze meteen, ze worden als scrypt-hash bewaard en zijn daarna
-niet meer op te vragen.
+Je eerste leerkrachtaccount maak je op `/setup` (eenmalig, met een `SETUP_SLEUTEL`).
+Daarna beheer je je klassen in het portaal zelf, via **Leerlingen beheren**: namen plakken,
+wachtwoorden krijgen, opnieuw instellen of verwijderen. Het CLI-script hierboven blijft
+bestaan voor wie liever een CSV gebruikt.
+
+Wachtwoorden zie je **één keer** — ze worden als scrypt-hash bewaard en zijn daarna niet
+meer op te vragen, wel opnieuw in te stellen.
 
 ## Werkt het?
 
@@ -57,16 +62,21 @@ misgaat. Ze toont nooit de waarde van een instelling.
 ```
 app/
   page.tsx                  aanmelden
+  setup/page.tsx            eenmalig het eerste leerkrachtaccount
   oefenen/page.tsx          werkruimte van de leerling
   leerkracht/page.tsx       opvolging
+  leerkracht/leerlingen/    accountbeheer
   api/nakijken/             nakijken op de server (sleutel blijft hier)
   api/gebeurtenissen/       schermgebruik registreren
   api/login/                aanmelden tegen de tabel leerlingen
+  api/leerkracht/           accounts aanmaken, resetten, verwijderen
+  api/setup/                eerste leerkracht (twee sloten)
   status/page.tsx           controlepagina na een deploy
 components/
   Werkblad.tsx              Univer, met Nederlandse functienamen
   OefeningWerkruimte.tsx    opdracht + rekenblad + feedback
 lib/
+  accounts.mjs              gebruikersnamen en wachtwoorden (gedeeld met het script)
   nl-functies.ts            SOM, ALS, VERT.ZOEKEN … als echte functies
   nakijken.ts               checks uitvoeren      (server-only)
   telemetrie.ts             schermgebruik meten
