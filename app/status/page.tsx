@@ -1,5 +1,5 @@
 import { geheimIsIngesteld, GEHEIM_MINIMUM } from '@/lib/auth';
-import { supabaseIsIngesteld } from '@/lib/supabase';
+import { supabaseIsIngesteld, controleerUrl } from '@/lib/supabase';
 import { controleerDatabank, type Controle } from '@/lib/opslag';
 
 export const dynamic = 'force-dynamic';
@@ -27,7 +27,12 @@ export default async function Status() {
   ];
 
   if (supabaseIsIngesteld()) {
-    controles.push(...(await controleerDatabank()));
+    // Eerst de vorm van het adres, dan pas een echt verzoek. Zo krijg je bij een
+    // verkeerd gekopieerde URL meteen te horen wat eraan scheelt.
+    const vorm = controleerUrl();
+    controles.push({ naam: 'Vorm van SUPABASE_URL', ok: vorm.ok, boodschap: vorm.boodschap });
+
+    if (vorm.ok) controles.push(...(await controleerDatabank()));
   }
 
   const allesOk = controles.every((c) => c.ok);

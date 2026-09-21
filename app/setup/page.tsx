@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { supabaseIsIngesteld } from '@/lib/supabase';
-import { telLeerkrachten } from '@/lib/opslag';
+import { supabaseIsIngesteld, ConfiguratieFout } from '@/lib/supabase';
+import { telLeerkrachten, verklaar } from '@/lib/opslag';
 import SetupFormulier from '@/components/SetupFormulier';
 
 export const dynamic = 'force-dynamic';
@@ -15,7 +15,7 @@ export default async function Setup() {
     try {
       alLeerkracht = (await telLeerkrachten()) > 0;
     } catch (e) {
-      databankFout = e instanceof Error ? e.message : 'De databank is niet bereikbaar.';
+      databankFout = e instanceof ConfiguratieFout ? e.message : e instanceof Error ? verklaar(e.message) : 'De databank is niet bereikbaar.';
     }
   }
 

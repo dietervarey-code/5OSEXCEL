@@ -120,15 +120,21 @@ export async function bewaarPoging(invoer: {
 }): Promise<number> {
   const db = supabase();
 
+  // Geen head:true gebruiken. Levert de API iets anders dan JSON — bijvoorbeeld
+  // een HTML-foutpagina — dan geeft supabase-js bij head:true stilletjes
+  // error: null en count: null terug, en zouden we hier zonder het te merken
+  // altijd poging 1 tellen.
   const { count, error: telFout } = await db
     .from('pogingen')
-    .select('id', { count: 'exact', head: true })
+    .select('id', { count: 'exact' })
     .eq('gebruikersnaam', invoer.gebruikersnaam)
-    .eq('oefening_id', invoer.oefeningId);
+    .eq('oefening_id', invoer.oefeningId)
+    .limit(1);
 
   if (telFout) throw new Error(`Pogingen tellen mislukte: ${telFout.message}`);
+  if (count === null) throw new Error('Pogingen tellen gaf geen resultaat terug.');
 
-  const nummer = (count ?? 0) + 1;
+  const nummer = count + 1;
 
   const { error } = await db.from('pogingen').insert({
     sessie_id: invoer.sessieId,
@@ -242,9 +248,21 @@ export async function controleerDatabank(): Promise<Controle[]> {
   const controles: Controle[] = [];
 
   try {
+    // Bewust een echte select in plaats van head:true: enkel zo komt een
+    // HTML-foutpagina of een verkeerd adres als fout naar boven.
     const { count, error } = await supabase()
       .from('leerlingen')
-      .select('gebruikersnaam', { count: 'exact', head: true });
+      .select('gebruikersnaam', { count: 'exact' })
+      .limit(1);
+
+    if (!error && count === null) {
+      controles.push({
+        naam: 'Tabellen',
+        ok: false,
+        boodschap: 'Het antwoord van de databank is onbruikbaar. Controleer SUPABASE_URL en de secret key.',
+      });
+      return controles;
+    }
 
     if (error) {
       controles.push({ naam: 'Tabellen', ok: false, boodschap: verklaar(error.message, error.code) });
@@ -271,8 +289,26 @@ export async function controleerDatabank(): Promise<Controle[]> {
   return controles;
 }
 
-/** Vertaalt een technische foutboodschap naar iets waar je mee verder kunt. */
-function verklaar(boodschap: string, code?: string): string {
+/**
+ * Vertaalt een technische foutboodschap naar iets waar je mee verder kunt.
+ *
+ * Geëxporteerd omdat elke pagina die een databankfout toont dezelfde uitleg
+ * hoort te geven. Zonder dit kreeg je bijvoorbeeld een volledige HTML-pagina
+ * op je scherm wanneer SUPABASE_URL naar het dashboard wees in plaats van naar
+ * de API.
+ */
+export function verklaar(boodschap: string, code?: string): string {
+  // Een HTML-antwoord betekent dat we bij een webpagina zijn uitgekomen in
+  // plaats van bij de API. Bijna altijd een verkeerde SUPABASE_URL.
+  if (/<!DOCTYPE html|<html/i.test(boodschap)) {
+    const dashboard = /supabase\.com|\/dashboard|supabase-og|Supabase Studio/i.test(boodschap);
+    return dashboard
+      ? 'SUPABASE_URL wijst naar het Supabase-dashboard in plaats van naar de API van je project. ' +
+          'Neem de waarde uit Project Settings › Data API › Project URL; die ziet eruit als ' +
+          'https://xxxxxxxx.supabase.co (dus .supabase.co, zonder /dashboard en zonder pad).'
+      : 'Op dat adres staat een webpagina, geen databank-API. Controleer SUPABASE_URL.';
+  }
+
   // PGRST205: PostgREST kent de tabel niet — het schema is nog niet uitgevoerd.
   if (code === 'PGRST205' || /does not exist|schema cache/i.test(boodschap)) {
     return 'De tabel "leerlingen" bestaat niet. Voer supabase/schema.sql uit in de SQL Editor van Supabase.';
@@ -280,10 +316,17 @@ function verklaar(boodschap: string, code?: string): string {
   if (/fetch failed|ENOTFOUND|EAI_AGAIN|getaddrinfo/i.test(boodschap)) {
     return 'Het project is niet bereikbaar. Controleer SUPABASE_URL op een typfout, en kijk in Supabase of het project niet gepauzeerd staat — gratis projecten pauzeren na een week zonder activiteit.';
   }
+  if (/Invalid path specified in request URL/i.test(boodschap)) {
+    return 'SUPABASE_URL heeft een pad te veel. Gebruik alleen https://xxxxxxxx.supabase.co — ' +
+      'niet het "RESTful endpoint" dat op /rest/v1 eindigt; dat stuk zet de app er zelf achter.';
+  }
   if (/Invalid API key|JWT|401|403/i.test(boodschap)) {
     return 'De sleutel wordt geweigerd. Gebruik je wel de secret key (sb_secret_...) en niet de publishable key?';
   }
-  return `Databankfout: ${boodschap}`;
+
+  // Nooit een muur tekst op het scherm gooien.
+  const kort = boodschap.length > 200 ? `${boodschap.slice(0, 200)}…` : boodschap;
+  return `Databankfout: ${kort}`;
 }
 
 // --- Accountbeheer -----------------------------------------------------
@@ -319,11 +362,18 @@ export async function lijstLeerlingen(klas?: string): Promise<LeerlingOverzicht[
 export async function telLeerkrachten(): Promise<number> {
   const { count, error } = await supabase()
     .from('leerlingen')
-    .select('gebruikersnaam', { count: 'exact', head: true })
-    .eq('rol', 'leerkracht');
+    .select('gebruikersnaam', { count: 'exact' })
+    .eq('rol', 'leerkracht')
+    .limit(1);
 
   if (error) throw new Error(`Leerkrachten tellen mislukte: ${error.message}`);
-  return count ?? 0;
+  if (count === null) {
+    // Zie de opmerking bij bewaarPoging: zonder deze controle zouden we hier
+    // "nul leerkrachten" concluderen en /setup openzetten terwijl de databank
+    // in werkelijkheid onbereikbaar is.
+    throw new Error('De databank gaf geen bruikbaar antwoord. Controleer SUPABASE_URL en de secret key.');
+  }
+  return count;
 }
 
 /** Alle gebruikersnamen die al bezet zijn — nodig om dubbels te vermijden. */

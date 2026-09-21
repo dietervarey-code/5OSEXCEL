@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { huidigeSessie } from '@/lib/auth';
-import { lijstLeerlingen, type LeerlingOverzicht } from '@/lib/opslag';
+import { ConfiguratieFout } from '@/lib/supabase';
+import { lijstLeerlingen, verklaar, type LeerlingOverzicht } from '@/lib/opslag';
 import LeerlingenBeheer from '@/components/LeerlingenBeheer';
 
 export const dynamic = 'force-dynamic';
@@ -16,7 +17,7 @@ export default async function Leerlingen() {
   try {
     leerlingen = await lijstLeerlingen();
   } catch (e) {
-    fout = e instanceof Error ? e.message : 'De lijst kon niet geladen worden.';
+    fout = e instanceof ConfiguratieFout ? e.message : e instanceof Error ? verklaar(e.message) : 'De lijst kon niet geladen worden.';
   }
 
   return (

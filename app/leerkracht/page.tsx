@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { huidigeSessie } from '@/lib/auth';
-import { overzicht, type OverzichtRij } from '@/lib/opslag';
+import { ConfiguratieFout } from '@/lib/supabase';
+import { overzicht, verklaar, type OverzichtRij } from '@/lib/opslag';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,7 +30,7 @@ export default async function Leerkracht() {
     rijen = await overzicht(aangemeld.klas);
   } catch (e) {
     console.error('[leerkracht]', e);
-    fout = e instanceof Error ? e.message : 'Het overzicht kon niet geladen worden.';
+    fout = e instanceof ConfiguratieFout ? e.message : e instanceof Error ? verklaar(e.message) : 'Het overzicht kon niet geladen worden.';
   }
 
   const metWerk = rijen.filter((r) => r.pogingen > 0);
@@ -78,6 +79,9 @@ export default async function Leerkracht() {
                   <td>
                     <strong>{r.naam}</strong>
                     {r.pogingen === 0 && <span className="gedempt"> · nog niet begonnen</span>}
+                    {/* De gebruikersnaam erbij, anders zijn twee gelijknamige
+                        leerlingen in deze tabel niet uit elkaar te houden. */}
+                    <div className="gedempt" style={{ fontSize: '0.78rem' }}>{r.gebruikersnaam}</div>
                   </td>
                   <td>
                     {r.besteScore === null ? '—' : (
