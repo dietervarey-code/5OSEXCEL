@@ -3,16 +3,17 @@ import { huidigeSessie } from '@/lib/auth';
 import { kijkNa } from '@/lib/nakijken';
 import { SLEUTELS } from '@/data/oefeningen/sleutels';
 import { bewaarPoging, sessieHoortBij } from '@/lib/opslag';
-import type { CelInzending } from '@/lib/werkblad-types';
+import type { BladInzending, CelInzending } from '@/lib/werkblad-types';
 
 export async function POST(request: Request) {
   const aangemeld = await huidigeSessie();
   if (!aangemeld) return NextResponse.json({ fout: 'Niet aangemeld.' }, { status: 401 });
 
-  const { oefeningId, sessieId, inzending } = (await request.json()) as {
+  const { oefeningId, sessieId, inzending, blad } = (await request.json()) as {
     oefeningId: string;
     sessieId: string;
     inzending: CelInzending[];
+    blad?: BladInzending;
   };
 
   const checks = SLEUTELS[oefeningId];
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ fout: 'Deze oefensessie is niet van jou.' }, { status: 403 });
   }
 
-  const { score, maxScore, resultaten } = kijkNa(checks, inzending ?? []);
+  const { score, maxScore, resultaten } = kijkNa(checks, inzending ?? [], blad);
 
   try {
     const pogingNummer = await bewaarPoging({

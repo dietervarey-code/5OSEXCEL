@@ -20,6 +20,7 @@ export const bestellingenOpgave: Opgave = {
   id: 'bestellingen-als',
   titel: 'Bestellingen beoordelen',
   focus: 'Focus 2 — ALS, AANTAL.ALS, SOM.ALS',
+  focusNummer: 2,
   volgnummer: 5,
   niveau: 3,
   leerdoel: 'Een beslissing laten nemen door het rekenblad, en tellen en optellen op voorwaarde.',

@@ -18,6 +18,7 @@ export const factuurOpgave: Opgave = {
   id: 'factuur-basis',
   titel: 'Factuur vervolledigen',
   focus: 'Focus 1 & 2 — getalnotatie, SOM, absolute celverwijzing',
+  focusNummer: 2,
   volgnummer: 3,
   niveau: 2,
   leerdoel: 'Een factuur afwerken met SOM en een absolute celverwijzing naar het btw-tarief.',

@@ -1,5 +1,5 @@
 import 'server-only';
-import type { CelInzending } from '@/lib/werkblad-types';
+import type { BladInzending, CelInzending } from '@/lib/werkblad-types';
 
 /**
  * Nakijklogica. Draait UITSLUITEND op de server: de antwoordsleutel mag nooit
@@ -21,6 +21,23 @@ export type Check = {
   formulePatronen?: { patroon: string; uitleg: string }[];
   /** Reguliere expressie waaraan de getalnotatie moet voldoen. */
   getalnotatiePatroon?: string;
+  /** Celopmaak die aanwezig moet zijn (Focus 1). */
+  opmaakEisen?: {
+    vet?: boolean;
+    cursief?: boolean;
+    onderstreept?: boolean;
+    /** Er moet een achtergrondkleur staan, welke dan ook. */
+    achtergrondkleur?: boolean;
+    /** 'center' | 'right' | 'left' */
+    uitlijning?: 'center' | 'right' | 'left';
+  };
+  /**
+   * De cellen moeten deze waarden bevatten in deze volgorde — voor sorteren.
+   * Anders dan verwachteWaarden gaat het hier om de volgorde als geheel.
+   */
+  verwachteVolgorde?: (string | number)[];
+  /** Minimaal aantal vastgezette rijen/kolommen (Beeld › Titels blokkeren). */
+  vastzettenEisen?: { rijen?: number; kolommen?: number };
   /** Tekst die de leerling ziet als de check faalt. */
   hint: string;
 };
@@ -36,6 +53,13 @@ export type CheckResultaat = {
 function zoekCel(inzending: CelInzending[], cel: string): CelInzending | undefined {
   return inzending.find((c) => c.cel.toUpperCase() === cel.toUpperCase());
 }
+
+/** Univer bewaart uitlijning als cijfer; dit vertaalt beide kanten op. */
+const UITLIJNING: Record<string, string[]> = {
+  left: ['1', 'left'],
+  center: ['2', 'center'],
+  right: ['3', 'right'],
+};
 
 const FOUTWAARDEN = ['#NAME?', '#NAAM?', '#VALUE!', '#WAARDE!', '#REF!', '#VERW!', '#DIV/0!', '#DEEL/0!', '#N/A', '#N/B', '#NUM!', '#GETAL!', '#NULL!', '#LEEG!'];
 
@@ -79,6 +103,13 @@ export function naarGetal(waarde: unknown): number {
   const getal = Number(tekst);
   if (!Number.isFinite(getal)) return Number.NaN;
   return negatief ? -Math.abs(getal) : getal;
+}
+
+/** Wit of niets telt niet als "een achtergrondkleur gezet". */
+function heeftKleur(kleur: string | undefined): boolean {
+  if (!kleur) return false;
+  const genormaliseerd = kleur.trim().toLowerCase().replace(/\s/g, '');
+  return !['', 'none', 'transparent', '#fff', '#ffffff', 'rgb(255,255,255)', '#ffffffff'].includes(genormaliseerd);
 }
 
 function getalGelijk(cel: CelInzending, verwacht: number, tolerantie: number): boolean {
@@ -142,7 +173,40 @@ export function voerCheckUit(check: Check, inzending: CelInzending[]): CheckResu
         problemen.push(`${cel} heeft nog niet de gevraagde getalnotatie`);
       }
     }
+
+    // 5. Celopmaak: vet, achtergrond, uitlijning.
+    const eisen = check.opmaakEisen;
+    if (eisen) {
+      const opmaak = ingevuld.opmaak;
+      if (eisen.vet && !opmaak?.vet) problemen.push(`${cel} staat nog niet in het vet`);
+      if (eisen.cursief && !opmaak?.cursief) problemen.push(`${cel} staat nog niet cursief`);
+      if (eisen.onderstreept && !opmaak?.onderstreept) problemen.push(`${cel} is niet onderstreept`);
+      if (eisen.achtergrondkleur && !heeftKleur(opmaak?.achtergrond)) {
+        problemen.push(`${cel} heeft nog geen achtergrondkleur`);
+      }
+      if (eisen.uitlijning) {
+        const gewenst = UITLIJNING[eisen.uitlijning] ?? [];
+        const gekregen = String(opmaak?.uitlijning ?? '').toLowerCase();
+        if (!gewenst.includes(gekregen)) problemen.push(`${cel} is nog niet ${eisen.uitlijning} uitgelijnd`);
+      }
+    }
   });
+
+  // 6. Staan de gegevens in de juiste volgorde? (sorteren)
+  if (check.verwachteVolgorde) {
+    const gekregen = check.cellen.map((cel) => {
+      const c = zoekCel(inzending, cel);
+      return String(c?.ruweWaarde ?? c?.waarde ?? '').trim().toLowerCase();
+    });
+    const verwacht = check.verwachteVolgorde.map((w) => String(w).trim().toLowerCase());
+
+    const eersteFout = verwacht.findIndex((w, i) => w !== gekregen[i]);
+    if (eersteFout !== -1) {
+      problemen.push(
+        `de volgorde klopt nog niet: in ${check.cellen[eersteFout]} verwachtten we "${check.verwachteVolgorde[eersteFout]}"`,
+      );
+    }
+  }
 
   return {
     checkId: check.id,
@@ -154,8 +218,30 @@ export function voerCheckUit(check: Check, inzending: CelInzending[]): CheckResu
   };
 }
 
-export function kijkNa(checks: Check[], inzending: CelInzending[]) {
-  const resultaten = checks.map((c) => voerCheckUit(c, inzending));
+export function kijkNa(checks: Check[], inzending: CelInzending[], blad?: BladInzending) {
+  const resultaten = checks.map((c) => {
+    const resultaat = voerCheckUit(c, inzending);
+
+    // Vastzetten hangt aan het blad, niet aan een cel; daarom apart.
+    if (c.vastzettenEisen) {
+      const tekort: string[] = [];
+      const rijen = blad?.vastgezetteRijen ?? 0;
+      const kolommen = blad?.vastgezetteKolommen ?? 0;
+      const telWoord = (n: number, enkel: string, meer: string) =>
+        n === 1 ? `is 1 ${enkel}` : `zijn ${n} ${meer}`;
+
+      if (c.vastzettenEisen.rijen && rijen < c.vastzettenEisen.rijen) {
+        tekort.push(`er ${telWoord(rijen, 'rij', 'rijen')} vastgezet in plaats van ${c.vastzettenEisen.rijen}`);
+      }
+      if (c.vastzettenEisen.kolommen && kolommen < c.vastzettenEisen.kolommen) {
+        tekort.push(`er ${telWoord(kolommen, 'kolom', 'kolommen')} vastgezet in plaats van ${c.vastzettenEisen.kolommen}`);
+      }
+      if (tekort.length) {
+        return { ...resultaat, behaald: false, feedback: `${tekort.join('; ')}. ${c.hint}` };
+      }
+    }
+    return resultaat;
+  });
   const score = resultaten.filter((r) => r.behaald).reduce((s, r) => s + r.punten, 0);
   const maxScore = checks.reduce((s, c) => s + c.punten, 0);
   return { score, maxScore, resultaten };

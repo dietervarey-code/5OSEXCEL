@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0",
+    "@univerjs/preset-sheets-sort": "^0.25.1",
     "@univerjs/presets": "^0.25.1",
     "next": "^15.5.25",
     "react": "^19.3.0",

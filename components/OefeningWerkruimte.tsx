@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import type { Opgave, CelInzending } from '@/lib/werkblad-types';
+import type { Opgave, CelInzending, BladInzending } from '@/lib/werkblad-types';
 import { useTelemetrie } from '@/lib/telemetrie';
 
 // Univer rendert op een canvas en kan niet server-side gerenderd worden.
@@ -33,7 +33,7 @@ export default function OefeningWerkruimte({
   opslagFout: string | null;
   les: { id: string; titel: string } | null;
 }) {
-  const lezer = useRef<(() => CelInzending[]) | null>(null);
+  const lezer = useRef<(() => { cellen: CelInzending[]; blad: BladInzending }) | null>(null);
   const [resultaat, setResultaat] = useState<Resultaat | null>(null);
   const [bezig, setBezig] = useState(false);
   const [fout, setFout] = useState<string | null>(null);
@@ -42,7 +42,7 @@ export default function OefeningWerkruimte({
   // De teruggegeven samenvatting gebruiken we bewust niet.
   useTelemetrie(sessieId, true);
 
-  const opGereed = useCallback((lees: () => CelInzending[]) => {
+  const opGereed = useCallback((lees: () => { cellen: CelInzending[]; blad: BladInzending }) => {
     lezer.current = lees;
   }, []);
 
@@ -51,10 +51,11 @@ export default function OefeningWerkruimte({
     setBezig(true);
     setFout(null);
     try {
+      const { cellen, blad } = lezer.current();
       const antwoord = await fetch('/api/nakijken', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ oefeningId: opgave.id, sessieId, inzending: lezer.current() }),
+        body: JSON.stringify({ oefeningId: opgave.id, sessieId, inzending: cellen, blad }),
       });
       if (!antwoord.ok) throw new Error('Nakijken lukte niet. Ben je nog aangemeld?');
       setResultaat(await antwoord.json());

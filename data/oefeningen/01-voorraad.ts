@@ -18,6 +18,7 @@ export const voorraadOpgave: Opgave = {
   id: 'voorraad-basis',
   titel: 'Voorraadlijst afwerken',
   focus: 'Focus 1 & 2 — vermenigvuldigen, SOM, getalnotatie',
+  focusNummer: 2,
   volgnummer: 1,
   niveau: 1,
   leerdoel: 'Een bedrag berekenen met een formule in plaats van een rekenmachine, en optellen met SOM.',

@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import '@univerjs/presets/lib/styles/preset-sheets-core.css';
-import type { WerkmapData, CelInzending } from '@/lib/werkblad-types';
+import '@univerjs/preset-sheets-sort/lib/index.css';
+import type { WerkmapData, CelInzending, BladInzending } from '@/lib/werkblad-types';
 import { positieNaarCel } from '@/lib/werkblad-types';
 import { NL_FUNCTIES } from '@/lib/nl-functies';
 import { vertaalScheidingstekens } from '@/lib/formules';
@@ -10,7 +11,7 @@ import { vertaalScheidingstekens } from '@/lib/formules';
 type Props = {
   werkmap: WerkmapData;
   /** Wordt aangeroepen zodra het werkblad klaar is; geeft een leesfunctie terug. */
-  opGereed: (lees: () => CelInzending[]) => void;
+  opGereed: (lees: () => { cellen: CelInzending[]; blad: BladInzending }) => void;
   opWijziging?: () => void;
 };
 
@@ -38,19 +39,28 @@ export default function Werkblad({ werkmap, opGereed, opWijziging }: Props) {
 
     (async () => {
       try {
-        const [{ createUniver, defaultTheme, LocaleType, merge }, { UniverSheetsCorePreset }, locale] =
-          await Promise.all([
-            import('@univerjs/presets'),
-            import('@univerjs/presets/preset-sheets-core'),
-            import('@univerjs/presets/preset-sheets-core/locales/en-US'),
-          ]);
+        const [
+          { createUniver, defaultTheme, LocaleType, merge },
+          { UniverSheetsCorePreset },
+          locale,
+          { UniverSheetsSortPreset },
+          sortLocale,
+        ] = await Promise.all([
+          import('@univerjs/presets'),
+          import('@univerjs/presets/preset-sheets-core'),
+          import('@univerjs/presets/preset-sheets-core/locales/en-US'),
+          import('@univerjs/preset-sheets-sort'),
+          import('@univerjs/preset-sheets-sort/locales/en-US'),
+        ]);
         if (afgebroken || !container.current) return;
 
         const { univer, univerAPI } = createUniver({
           locale: LocaleType.EN_US,
-          locales: { [LocaleType.EN_US]: merge({}, locale.default) },
+          locales: { [LocaleType.EN_US]: merge({}, locale.default, sortLocale.default) },
           theme: defaultTheme,
           presets: [
+            // Sorteren zit niet in de kern-preset, maar is wel nodig voor Focus 1.
+            UniverSheetsSortPreset(),
             UniverSheetsCorePreset({
               container: container.current,
               footer: { sheetBar: true, statisticBar: true },
@@ -140,7 +150,7 @@ export default function Werkblad({ werkmap, opGereed, opWijziging }: Props) {
         }
 
         /** Leest het gebruikte bereik uit en levert waarde, formule en getalnotatie per cel. */
-        function lees(): CelInzending[] {
+        function lees(): { cellen: CelInzending[]; blad: BladInzending } {
           const werkboek = univerAPI.getActiveWorkbook();
 
           // Bewust NIET het actieve blad: heeft een oefening meerdere bladen en
@@ -149,7 +159,8 @@ export default function Werkblad({ werkmap, opGereed, opWijziging }: Props) {
           // blad uit de opgave — daar staan de antwoorden.
           const hoofdblad = werkmap.sheets[werkmap.sheetOrder[0]];
           const blad = werkboek?.getSheetByName(hoofdblad.name) ?? werkboek?.getActiveSheet();
-          if (!blad) return [];
+          const leeg = { cellen: [], blad: { vastgezetteRijen: 0, vastgezetteKolommen: 0 } };
+          if (!blad) return leeg;
 
           const laatsteRij = Math.min(hoofdblad.rowCount, 60);
           const laatsteKolom = Math.min(hoofdblad.columnCount, 20);
@@ -164,6 +175,8 @@ export default function Werkblad({ werkmap, opGereed, opWijziging }: Props) {
           const formules = bereik.getFormulas();
           const notaties = bereik.getNumberFormats();
           const stijlen = bereik.getCellStyles();
+          const achtergronden = bereik.getBackgrounds?.() as string[][] | undefined;
+          const uitlijningen = bereik.getHorizontalAlignments?.() as (string | number)[][] | undefined;
 
           const cellen: CelInzending[] = [];
           for (let r = 0; r < laatsteRij; r++) {
@@ -173,6 +186,16 @@ export default function Werkblad({ werkmap, opGereed, opWijziging }: Props) {
               if ((waarde === null || waarde === '') && !formuleTekst) continue;
 
               const ruw = ruwe?.[r]?.[k];
+              // getCellStyles() levert TextStyleValue-objecten met getters
+              // (bold, italic, underline), niet de rauwe stijlvelden bl/it/ul.
+              const stijl = stijlen?.[r]?.[k] as
+                | {
+                    bold?: boolean;
+                    italic?: boolean;
+                    underline?: unknown;
+                    background?: { rgb?: string };
+                  }
+                | undefined;
 
               cellen.push({
                 cel: positieNaarCel(r, k),
@@ -180,13 +203,28 @@ export default function Werkblad({ werkmap, opGereed, opWijziging }: Props) {
                 ruweWaarde: (typeof ruw === 'object' && ruw !== null ? undefined : ruw) as CelInzending['ruweWaarde'],
                 formule: formuleTekst,
                 opmaak: {
-                  vet: Boolean((stijlen?.[r]?.[k] as { bl?: number } | undefined)?.bl),
+                  vet: Boolean(stijl?.bold),
+                  cursief: Boolean(stijl?.italic),
+                  onderstreept: Boolean(stijl?.underline),
+                  achtergrond: achtergronden?.[r]?.[k] ?? stijl?.background?.rgb ?? '',
+                  uitlijning: String(uitlijningen?.[r]?.[k] ?? ''),
                   getalnotatie: notaties?.[r]?.[k] ?? '',
                 },
               });
             }
           }
-          return cellen;
+          // Titels blokkeren (Focus 1) lezen we van het blad zelf, niet van een cel.
+          let vastgezetteRijen = 0;
+          let vastgezetteKolommen = 0;
+          try {
+            const bevriezing = (blad as unknown as {
+              getFreeze?: () => { startRow?: number; startColumn?: number; ySplit?: number; xSplit?: number };
+            }).getFreeze?.();
+            vastgezetteRijen = Number(bevriezing?.ySplit ?? bevriezing?.startRow ?? 0) || 0;
+            vastgezetteKolommen = Number(bevriezing?.xSplit ?? bevriezing?.startColumn ?? 0) || 0;
+          } catch { /* niet elk blad kent dit */ }
+
+          return { cellen, blad: { vastgezetteRijen, vastgezetteKolommen } };
         }
 
         opGereedRef.current(lees);

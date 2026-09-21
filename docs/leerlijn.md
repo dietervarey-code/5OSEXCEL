@@ -20,20 +20,72 @@ deze repository is publiek.
 
 ## De reeks oefeningen
 
-Acht oefeningen, oplopend in moeilijkheid. Elke oefening heeft een les.
+Vijfentwintig oefeningen, gegroepeerd per Focus, en binnen elke Focus oplopend van
+● naar ●●●●●.
 
-| # | Oefening | Niveau | Waar het om draait |
-|---|---|---|---|
-| 1 | Voorraadlijst afwerken | ● | vermenigvuldigen met celverwijzingen, `SOM`, getalnotatie |
-| 2 | Prijslijst bijwerken | ●● | absolute celverwijzing, `AFRONDEN` |
-| 3 | Factuur vervolledigen | ●● | beide samen op een echte factuur |
-| 4 | Verkoopcijfers samenvatten | ●● | `MAX`, `MIN`, `GEMIDDELDE`, `AANTAL` tegenover `AANTALARG` |
-| 5 | Bestellingen beoordelen | ●●● | `ALS`, `AANTAL.ALS`, `SOM.ALS` |
-| 6 | Klantenbestand aanvullen | ●●● | `VERT.ZOEKEN` met exacte match |
-| 7 | Artikelen opzoeken | ●●●● | `X.ZOEKEN` met terugvalwaarde |
-| 8 | Korting met geneste functies | ●●●●● | `VERT.ZOEKEN` en `ALS` in één formule |
+### Focus 1 · Rekenblad gebruiken en opmaken
 
-## Stagetaken als vertrekpunt
+| Oefening | Niveau | Waar het om draait |
+|---|---|---|
+| Getalnotatie toepassen | ● | valuta, percentage, vet, achtergrondkleur |
+| Een tabel leesbaar maken | ●● | koptekst, uitlijning, totaalrij |
+| Klanten sorteren op omzet | ●● | sorteren zonder de rijen uit elkaar te trekken |
+| Titels vastzetten | ●● | koppen in beeld houden bij het scrollen |
+| Gegevens van rijen naar kolommen | ●●● | transponeren met Paste Special |
+
+### Focus 2 · Formules en functies
+
+| Oefening | Niveau | Waar het om draait |
+|---|---|---|
+| Voorraadlijst afwerken | ● | vermenigvuldigen met celverwijzingen, `SOM` |
+| Prijslijst bijwerken | ●● | absolute celverwijzing, `AFRONDEN` |
+| Factuur vervolledigen | ●● | beide samen op een echte factuur |
+| Verkoopcijfers samenvatten | ●● | `MAX`, `MIN`, `GEMIDDELDE`, `AANTAL` vs `AANTALARG` |
+| Bestellingen beoordelen | ●●● | `ALS`, `AANTAL.ALS`, `SOM.ALS` |
+| Klantenbestand aanvullen | ●●● | `VERT.ZOEKEN` met exacte match |
+
+### Focus 5 · Meerdere werkbladen
+
+| Oefening | Niveau | Waar het om draait |
+|---|---|---|
+| Cijfers van een ander blad ophalen | ●● | `Januari!D10` |
+| Eén filiaal over drie maanden | ●●● | dezelfde cel op meerdere bladen |
+| Twee maanden vergelijken | ●●● | bladen combineren in één formule |
+| Gemiddelde en uitschieters | ●●● | functies over bladen heen |
+| Opzoeken op een ander werkblad | ●●●● | `VERT.ZOEKEN` over de bladgrens |
+
+### Focus 6 · Koppelen
+
+| Oefening | Niveau | Waar het om draait |
+|---|---|---|
+| Prijzen koppelen aan de centrale lijst | ●● | één bron, alles volgt |
+| Koppelen met `VERT.ZOEKEN` | ●●● | koppelen op code in plaats van op positie |
+| Drie filialen samenbrengen | ●●● | consolideren |
+| Een kapotte koppeling herstellen | ●●●● | fouten in verwijzingen opsporen |
+| Een volledig gekoppelde factuur | ●●●●● | alles samen, niets dubbel |
+
+### Focus 8 · Geavanceerde functies
+
+| Oefening | Niveau | Waar het om draait |
+|---|---|---|
+| Maanddoelen opzoeken | ●●● | `HORIZ.ZOEKEN` |
+| Artikelen opzoeken | ●●●● | `X.ZOEKEN` met terugvalwaarde |
+| Klantcodes uit elkaar halen | ●●●● | `LINKS`, `RECHTS`, `LENGTE` |
+| Korting met geneste functies | ●●●●● | `VERT.ZOEKEN` en `ALS` in één formule |
+
+### Focus 3, 4, 7 en 9 — geen oefeningen
+
+| Focus | Waarom niet |
+|---|---|
+| 3 · Afdrukken | `@univerjs-pro/sheets-print` — betalende uitbreiding |
+| 4 · Grafieken | `@univerjs-pro/sheets-chart` — betalende uitbreiding |
+| 7 · Draaitabellen | `@univerjs-pro/sheets-pivot` — betalende uitbreiding |
+| 9 · Databank bevragen | gaat over Access, niet over een rekenblad |
+
+Voor die eerste drie is er één beslissing te nemen: een licentie op Univer Pro, of die
+leerstof klassikaal in echt Excel houden.
+
+## Stagetaken als vertrekpunt## Stagetaken als vertrekpunt
 
 De oefeningen vertrekken van wat een 5OS'er op stage effectief doet:
 

@@ -16,6 +16,7 @@ export const verkoopOpgave: Opgave = {
   id: 'verkoopcijfers',
   titel: 'Verkoopcijfers samenvatten',
   focus: 'Focus 2 — MAX, MIN, GEMIDDELDE, AANTAL, AANTALARG',
+  focusNummer: 2,
   volgnummer: 4,
   niveau: 2,
   leerdoel: 'Een reeks cijfers samenvatten, en weten waarom AANTAL en AANTALARG verschillen.',

@@ -19,6 +19,7 @@ export const prijslijstOpgave: Opgave = {
   id: 'prijslijst-verhoging',
   titel: 'Prijslijst bijwerken',
   focus: 'Focus 2 — absolute celverwijzing, AFRONDEN',
+  focusNummer: 2,
   volgnummer: 2,
   niveau: 2,
   leerdoel: 'Eén percentage op een hele lijst toepassen met een verwijzing die blijft staan.',

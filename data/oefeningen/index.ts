@@ -6,28 +6,59 @@ import { bestellingenOpgave } from './04-bestellingen';
 import { klantenOpgave } from './05-klanten';
 import { xzoekenOpgave } from './06-xzoeken';
 import { genesteOpgave } from './07-geneste';
+import { getalnotatieOpgave } from './f1-01-getalnotatie';
+import { tabelOpgave } from './f1-02-tabel';
+import { sorterenOpgave } from './f1-03-sorteren';
+import { vastzettenOpgave } from './f1-04-vastzetten';
+import { transponerenOpgave } from './f1-05-transponeren';
+import {
+  bladenOphalenOpgave, bladenFiliaalOpgave, bladenVerschilOpgave,
+  bladenGemiddeldeOpgave, bladenZoekenOpgave,
+} from './f5-bladen';
+import {
+  koppelenPrijzenOpgave, koppelenZoekenOpgave, koppelenConsoliderenOpgave,
+  koppelenHerstellenOpgave, koppelenFactuurOpgave,
+} from './f6-koppelen';
+import { horizZoekenOpgave, tekstOpgave } from './f8-extra';
 import type { Opgave } from '@/lib/werkblad-types';
 
 /**
  * Publieke catalogus: veilig om naar de browser te sturen.
- * De reeks bouwt op in moeilijkheid; `volgnummer` bepaalt de volgorde.
+ * Per Focus loopt de moeilijkheid op van ● naar ●●●●●.
  */
-const ALLE = [
-  voorraadOpgave,      // 1 — vermenigvuldigen en SOM
-  prijslijstOpgave,    // 2 — absolute verwijzing en AFRONDEN
-  factuurOpgave,       // 3 — beide samen op een echte factuur
-  verkoopOpgave,       // 4 — MAX, MIN, GEMIDDELDE, AANTAL(ARG)
-  bestellingenOpgave,  // 5 — ALS, AANTAL.ALS, SOM.ALS
-  klantenOpgave,       // 6 — VERT.ZOEKEN
-  xzoekenOpgave,       // 7 — X.ZOEKEN met terugvalwaarde
-  genesteOpgave,       // 8 — VERT.ZOEKEN en ALS in één formule
+const ALLE: Opgave[] = [
+  // Focus 1 — rekenblad gebruiken en opmaken
+  getalnotatieOpgave, tabelOpgave, sorterenOpgave, vastzettenOpgave, transponerenOpgave,
+  // Focus 2 — formules en functies
+  voorraadOpgave, prijslijstOpgave, factuurOpgave, verkoopOpgave, bestellingenOpgave, klantenOpgave,
+  // Focus 5 — meerdere werkbladen
+  bladenOphalenOpgave, bladenFiliaalOpgave, bladenVerschilOpgave, bladenGemiddeldeOpgave, bladenZoekenOpgave,
+  // Focus 6 — koppelen
+  koppelenPrijzenOpgave, koppelenZoekenOpgave, koppelenConsoliderenOpgave,
+  koppelenHerstellenOpgave, koppelenFactuurOpgave,
+  // Focus 8 — geavanceerde functies
+  xzoekenOpgave, genesteOpgave, horizZoekenOpgave, tekstOpgave,
 ];
 
 export const OEFENINGEN: Record<string, Opgave> = Object.fromEntries(ALLE.map((o) => [o.id, o]));
 
-/** In de volgorde waarin leerlingen ze horen te maken. */
+/** Gegroepeerd per Focus, binnen elke Focus op volgnummer. */
+export function oefeningenPerFocus(): { focus: number; oefeningen: Opgave[] }[] {
+  const groepen = new Map<number, Opgave[]>();
+  for (const o of ALLE) {
+    if (!groepen.has(o.focusNummer)) groepen.set(o.focusNummer, []);
+    groepen.get(o.focusNummer)!.push(o);
+  }
+  return [...groepen.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([focus, oefeningen]) => ({
+      focus,
+      oefeningen: oefeningen.sort((a, b) => a.volgnummer - b.volgnummer),
+    }));
+}
+
 export function oefeningenOpVolgorde(): Opgave[] {
-  return [...ALLE].sort((a, b) => a.volgnummer - b.volgnummer);
+  return oefeningenPerFocus().flatMap((g) => g.oefeningen);
 }
 
 export function vindOpgave(id: string): Opgave | undefined {

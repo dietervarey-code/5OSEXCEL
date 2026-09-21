@@ -25,6 +25,7 @@ export const genesteOpgave: Opgave = {
   id: 'geneste-functies',
   titel: 'Korting berekenen met geneste functies',
   focus: 'Focus 8 — geneste functies: VERT.ZOEKEN binnen een berekening',
+  focusNummer: 8,
   volgnummer: 8,
   niveau: 5,
   leerdoel: 'Twee functies in één formule combineren, en begrijpen in welke volgorde ze rekenen.',

@@ -25,6 +25,7 @@ export const klantenOpgave: Opgave = {
   id: 'klanten-vertzoeken',
   titel: 'Klantenbestand aanvullen',
   focus: 'Focus 2 & 8 — VERT.ZOEKEN',
+  focusNummer: 2,
   volgnummer: 6,
   niveau: 3,
   leerdoel: 'Gegevens uit een andere tabel halen op basis van een code, in plaats van ze over te typen.',

@@ -22,6 +22,7 @@ export const xzoekenOpgave: Opgave = {
   id: 'xzoeken-artikelen',
   titel: 'Artikelen opzoeken met X.ZOEKEN',
   focus: 'Focus 8 — X.ZOEKEN met terugvalwaarde',
+  focusNummer: 8,
   volgnummer: 7,
   niveau: 4,
   leerdoel: 'Opzoeken met X.ZOEKEN, en netjes omgaan met een code die niet bestaat.',

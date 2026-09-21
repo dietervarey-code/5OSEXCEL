@@ -1,11 +1,19 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { huidigeSessie } from '@/lib/auth';
-import { oefeningenOpVolgorde } from '@/data/oefeningen';
+import { oefeningenPerFocus } from '@/data/oefeningen';
 import { scoresVan, verklaar } from '@/lib/opslag';
 import { ConfiguratieFout } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
+
+const FOCUSNAMEN: Record<number, string> = {
+  1: 'Rekenblad gebruiken en opmaken',
+  2: 'Formules en functies',
+  5: 'Meerdere werkbladen',
+  6: 'Koppelen',
+  8: 'Geavanceerde functies',
+};
 
 function bolletjes(niveau: number) {
   return '●'.repeat(niveau) + '○'.repeat(5 - niveau);
@@ -15,7 +23,8 @@ export default async function Oefeningen() {
   const sessie = await huidigeSessie();
   if (!sessie) redirect('/');
 
-  const oefeningen = oefeningenOpVolgorde();
+  const groepen = oefeningenPerFocus();
+  const oefeningen = groepen.flatMap((g) => g.oefeningen);
 
   let scores: Record<string, { besteScore: number; maxScore: number; pogingen: number }> = {};
   let fout: string | null = null;
@@ -46,8 +55,13 @@ export default async function Oefeningen() {
 
       {fout && <div className="melding fout" style={{ marginBottom: '1rem' }}>{fout}</div>}
 
-      <div style={{ display: 'grid', gap: '0.7rem' }}>
-        {oefeningen.map((o, i) => {
+      {groepen.map(({ focus, oefeningen: groep }) => (
+      <section key={focus} style={{ marginBottom: '1.8rem' }}>
+        <h2 style={{ fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--gedempt)' }}>
+          Focus {focus} · {FOCUSNAMEN[focus] ?? ''}
+        </h2>
+        <div style={{ display: 'grid', gap: '0.7rem' }}>
+        {groep.map((o, i) => {
           const score = scores[o.id];
           const volledig = (score?.besteScore ?? 0) >= o.maxScore;
           return (
@@ -80,7 +94,9 @@ export default async function Oefeningen() {
             </Link>
           );
         })}
-      </div>
+        </div>
+      </section>
+      ))}
     </main>
   );
 }

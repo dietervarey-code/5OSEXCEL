@@ -3,6 +3,8 @@ export type Opgave = {
   id: string;
   titel: string;
   focus: string;
+  /** Het Focus-blok uit de cursus (1 t.e.m. 9). Groepeert het overzicht. */
+  focusNummer: number;
   /** Plaats in de reeks; bepaalt de volgorde in het overzicht. */
   volgnummer: number;
   /** 1 = eenvoudig, 5 = pittig. Wordt als bolletjes getoond. */
@@ -46,7 +48,21 @@ export type CelInzending = {
   /** De onderliggende waarde zonder opmaak. Ontbreekt bij oudere inzendingen. */
   ruweWaarde?: string | number | boolean | null;
   formule: string | null;
-  opmaak: { vet?: boolean; getalnotatie?: string } | null;
+  opmaak: {
+    vet?: boolean;
+    cursief?: boolean;
+    onderstreept?: boolean;
+    achtergrond?: string;
+    uitlijning?: string;
+    getalnotatie?: string;
+  } | null;
+};
+
+/** Toestand van het blad als geheel, naast de cellen. */
+export type BladInzending = {
+  /** Aantal vastgezette rijen en kolommen (Beeld › Titels blokkeren). */
+  vastgezetteRijen: number;
+  vastgezetteKolommen: number;
 };
 
 /** Zet "E11" om naar { rij: 10, kolom: 4 } (nulgebaseerd). */
