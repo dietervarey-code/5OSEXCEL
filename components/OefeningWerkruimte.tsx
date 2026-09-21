@@ -73,6 +73,7 @@ export default function OefeningWerkruimte({
           <div className="gedempt">{opgave.focus}</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <Link href="/oefenen" className="gedempt">Alle oefeningen</Link>
           <Link href="/lessen" className="gedempt">Lessen</Link>
           <span className="gedempt">{naam}</span>
           <form action="/api/uitloggen" method="post">

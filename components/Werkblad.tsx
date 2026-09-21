@@ -5,6 +5,7 @@ import '@univerjs/presets/lib/styles/preset-sheets-core.css';
 import type { WerkmapData, CelInzending } from '@/lib/werkblad-types';
 import { positieNaarCel } from '@/lib/werkblad-types';
 import { NL_FUNCTIES } from '@/lib/nl-functies';
+import { vertaalScheidingstekens } from '@/lib/formules';
 
 type Props = {
   werkmap: WerkmapData;
@@ -88,6 +89,43 @@ export default function Werkblad({ werkmap, opGereed, opWijziging }: Props) {
           }
         });
 
+        /**
+         * Puntkomma's omzetten naar komma's nadat de leerling een cel verlaat.
+         *
+         * De cursus schrijft =ALS(B5>100;"ja";"nee"). De rekenmachine verwacht
+         * komma's en geeft bij puntkomma's géén fout maar een verkeerd antwoord
+         * (=SOM(1;2;3) levert 0 op). Een leerling ziet niet wat er scheelt.
+         *
+         * We laten de invoer gewoon doorgaan en corrigeren daarna. Eerder
+         * annuleerden we de bewerking en schreven we ze zelf weg, maar dan raakte
+         * de eerstvolgende cel die de leerling invulde zoek.
+         */
+        univerAPI.addEvent(univerAPI.Event.SheetEditEnded, (params) => {
+          const { row, column, worksheet, isConfirm } = params as unknown as {
+            row: number;
+            column: number;
+            isConfirm: boolean;
+            worksheet: {
+              getRange: (r: number, k: number) => {
+                getFormula: () => string;
+                setValue: (v: unknown) => void;
+              };
+            };
+          };
+          if (!isConfirm) return;
+
+          try {
+            const cel = worksheet.getRange(row, column);
+            const formule = cel.getFormula();
+            if (!formule) return;
+
+            const vertaald = vertaalScheidingstekens(formule);
+            if (vertaald !== formule) cel.setValue({ f: vertaald });
+          } catch (e) {
+            console.warn('[5OS] formule vertalen mislukte:', e);
+          }
+        });
+
         univerAPI.createWorkbook(werkmap as never);
 
         // Vangnet: als de levenscyclusfase al voorbij was toen we ons abonneerden.
@@ -104,11 +142,17 @@ export default function Werkblad({ werkmap, opGereed, opWijziging }: Props) {
         /** Leest het gebruikte bereik uit en levert waarde, formule en getalnotatie per cel. */
         function lees(): CelInzending[] {
           const werkboek = univerAPI.getActiveWorkbook();
-          const blad = werkboek?.getActiveSheet();
+
+          // Bewust NIET het actieve blad: heeft een oefening meerdere bladen en
+          // staat de leerling op een ander tabblad wanneer die op Nakijken klikt,
+          // dan zouden we het verkeerde blad nakijken. We lezen altijd het eerste
+          // blad uit de opgave — daar staan de antwoorden.
+          const hoofdblad = werkmap.sheets[werkmap.sheetOrder[0]];
+          const blad = werkboek?.getSheetByName(hoofdblad.name) ?? werkboek?.getActiveSheet();
           if (!blad) return [];
 
-          const laatsteRij = Math.min(werkmap.sheets[werkmap.sheetOrder[0]].rowCount, 60);
-          const laatsteKolom = Math.min(werkmap.sheets[werkmap.sheetOrder[0]].columnCount, 20);
+          const laatsteRij = Math.min(hoofdblad.rowCount, 60);
+          const laatsteKolom = Math.min(hoofdblad.columnCount, 20);
           const bereik = blad.getRange(0, 0, laatsteRij, laatsteKolom);
 
           // getValues() levert de OPGEMAAKTE tekst zodra er een getalnotatie op

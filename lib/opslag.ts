@@ -423,3 +423,26 @@ export async function verwijderLeerling(gebruikersnaam: string): Promise<boolean
   if (error) throw new Error(`Verwijderen mislukte: ${error.message}`);
   return (data ?? []).length > 0;
 }
+
+/** Beste score per oefening voor één leerling — voor het oefeningenoverzicht. */
+export async function scoresVan(
+  gebruikersnaam: string,
+): Promise<Record<string, { besteScore: number; maxScore: number; pogingen: number }>> {
+  const { data, error } = await supabase()
+    .from('pogingen')
+    .select('oefening_id, score, max_score')
+    .eq('gebruikersnaam', gebruikersnaam);
+
+  if (error) throw new Error(`Scores ophalen mislukte: ${error.message}`);
+
+  const resultaat: Record<string, { besteScore: number; maxScore: number; pogingen: number }> = {};
+  for (const p of data ?? []) {
+    const id = p.oefening_id as string;
+    const huidig = resultaat[id] ?? { besteScore: 0, maxScore: Number(p.max_score), pogingen: 0 };
+    huidig.besteScore = Math.max(huidig.besteScore, Number(p.score));
+    huidig.maxScore = Number(p.max_score);
+    huidig.pogingen += 1;
+    resultaat[id] = huidig;
+  }
+  return resultaat;
+}

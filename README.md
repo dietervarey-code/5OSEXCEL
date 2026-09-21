@@ -10,7 +10,9 @@ genoeg is voor deze cursus, vóór er een heel portaal omheen gebouwd wordt.
 
 ## Wat werkt
 
-- Lessen met theorie, voorbeelden, tabellen, filmpjes en bijlagen — te schrijven in het portaal
+- Acht oefeningen die oplopen in moeilijkheid, van een eerste formule tot geneste functies
+- Acht lessen met theorie, voorbeelden en tabellen, elk gekoppeld aan een oefening
+- Filmpjes en bijlagen bij een les — te beheren in het portaal
 - Accountbeheer in het portaal zelf: namen plakken, wachtwoorden krijgen, opnieuw instellen
 - Aanmelden met gebruikersnaam en wachtwoord uit een tabel die de leerkracht beheert
 - Rekenblad in de browser ([Univer](https://github.com/dream-num/univer), Apache-2.0) met lint, formulebalk, celopmaak en meerdere bladen
@@ -24,6 +26,7 @@ genoeg is voor deze cursus, vóór er een heel portaal omheen gebouwd wordt.
 | Punt | Stand van zaken |
 |---|---|
 | Nederlandse functienamen | Werkt. Ze zijn als echte functies geregistreerd, inclusief namen met een punt (`VERT.ZOEKEN`). |
+| Puntkomma's en ONWAAR | Werkt. De leerling mag typen zoals de cursus het schrijft: `=ALS(B5>100;"ja";"nee")` en `ONWAAR`. Het portaal vertaalt dat. Decimalen wél met een **punt**: `0.02`. |
 | Menubalk | Staat nog in het **Engels**. Univer heeft 19 talen, maar geen Nederlands. Een `nl-NL`-vertaling is handwerk en staat op de planning. |
 | Draaitabellen (Focus 7) | **Nog niet getest.** Zit in de commerciële uitbreiding van Univer, niet in het open-source deel. Hier is een aparte beslissing nodig. |
 | Afdrukinstellingen (Focus 3) | **Nog niet getest.** Marges, kop-/voettekst en "alles op één pagina" bestaan niet op dezelfde manier in de browser. Mogelijk een aparte oefenvorm nodig. |
@@ -64,6 +67,8 @@ misgaat. Ze toont nooit de waarde van een instelling.
 app/
   page.tsx                  aanmelden
   setup/page.tsx            eenmalig het eerste leerkrachtaccount
+  oefenen/                  overzicht van de reeks
+  oefenen/[id]/             één oefening
   lessen/                   theorie lezen (leerling)
   leerkracht/lessen/        theorie schrijven
   oefenen/page.tsx          werkruimte van de leerling
@@ -80,6 +85,7 @@ components/
   OefeningWerkruimte.tsx    opdracht + rekenblad + feedback
 lib/
   accounts.mjs              gebruikersnamen en wachtwoorden (gedeeld met het script)
+  formules.ts               puntkomma's en WAAR/ONWAAR vertalen
   lessen.ts                 lessen en media  (server-only)
   bestanden.ts              Storage          (server-only)
   video.ts                  YouTube/Vimeo-links veilig insluiten
@@ -90,7 +96,7 @@ lib/
   opslag.ts                 alle databanktoegang  (server-only)
 supabase/
   schema.sql                tabellen en afscherming
-  voorbeeldles.sql          één uitgewerkte les om mee te beginnen
+  lessen.sql                de acht lessen
 data/oefeningen/
   factuur.opgave.ts         startbestand + opdracht (gaat naar de browser)
   factuur.sleutel.ts        antwoordsleutel     (server-only)
@@ -98,8 +104,9 @@ data/oefeningen/
 
 ### Een oefening toevoegen
 
-Twee bestanden: een `*.opgave.ts` met het startbestand en de instructies, en een
-`*.sleutel.ts` met de checks. Elke check kan drie dingen controleren:
+Twee bestanden in `data/oefeningen/`: een opgave met het startbestand en de instructies,
+en een sleutel met de checks. `bouwstenen.ts` bevat de opmaak en een hulpje om een
+werkmap te bouwen; kijk naar `01-voorraad.ts` als voorbeeld. Elke check kan drie dingen controleren:
 
 ```ts
 {
@@ -136,4 +143,5 @@ mondeling in, en stem het gebruik af met de school en de DPO voor je het inzet.
 
 1. `nl-NL`-vertaling van de menubalk
 2. Uitzoeken wat er kan met draaitabellen (Focus 7) en afdrukinstellingen (Focus 3)
-3. Oefeningen 2 t.e.m. 7 uit `docs/leerlijn.md`, met de bijbehorende lessen
+3. Draaitabellen (Focus 7) en afdrukken (Focus 3) — de twee onderwerpen die nog geen
+   oefening hebben

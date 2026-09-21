@@ -3,6 +3,12 @@ export type Opgave = {
   id: string;
   titel: string;
   focus: string;
+  /** Plaats in de reeks; bepaalt de volgorde in het overzicht. */
+  volgnummer: number;
+  /** 1 = eenvoudig, 5 = pittig. Wordt als bolletjes getoond. */
+  niveau: 1 | 2 | 3 | 4 | 5;
+  /** Wat de leerling na deze oefening kan. */
+  leerdoel: string;
   stagecontext: string;
   opdrachten: string[];
   /** Cellen die de leerling niet mag wijzigen (gegeven materiaal). */

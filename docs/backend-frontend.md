@@ -171,11 +171,11 @@ met twee filmpjes opgebruiken.
 Een voorbeeldwerkmap, een pdf of een schermafbeelding laad je wel gewoon op, tot 20 MB
 per bestand. Verwijder je het item, dan verdwijnt ook het bestand uit de opslag.
 
-### Een les om mee te beginnen
+### De lessen inladen
 
-`supabase/voorbeeldles.sql` bevat één uitgewerkte les over SOM en absolute
-celverwijzing, gekoppeld aan de factuuroefening. Uitvoeren in de SQL Editor is optioneel;
-daarna bewerk je ze gewoon in het portaal.
+`supabase/lessen.sql` bevat de acht lessen die bij de acht oefeningen horen. Voer het uit
+in de SQL Editor. Het mag meermaals draaien: een les die al bij een oefening hoort, komt
+er niet nog eens bij. Daarna bewerk je ze gewoon in het portaal.
 
 ---
 

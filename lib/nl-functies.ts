@@ -17,6 +17,22 @@ function vlak(arg: Arg): Waarde[] {
   return [arg];
 }
 
+/**
+ * Haalt één waarde uit een argument.
+ *
+ * De rekenmachine geeft ook een verwijzing naar één cel door als array — `A1`
+ * komt binnen als [[42]]. Dat is onschuldig zolang je ermee rekent (Number()
+ * verstaat het), maar niet bij een vergelijking of een waarheidswaarde: een
+ * array is in JavaScript altijd waar, waardoor ALS steevast de ja-tak koos en
+ * VERT.ZOEKEN nooit iets vond. Elk argument dat één waarde hoort te zijn, gaat
+ * daarom eerst hierlangs.
+ */
+function enkel(arg: Arg): Waarde {
+  if (!Array.isArray(arg)) return arg;
+  const plat = arg.flat(2) as Waarde[];
+  return plat.length > 0 ? plat[0] : null;
+}
+
 /** Enkel de cellen die echt een getal bevatten — lege cellen en tekst tellen niet mee. */
 function getallen(args: Arg[]): number[] {
   return args
@@ -96,37 +112,39 @@ export const NL_FUNCTIES: NlFunctie[] = [
   { naam: 'MIN', uitleg: 'Geeft het kleinste getal.', fn: (...a) => { const g = getallen(a); return g.length ? Math.min(...g) : 0; } },
   { naam: 'AANTAL', uitleg: 'Telt hoeveel cellen een getal bevatten.', fn: (...a) => getallen(a).length },
   { naam: 'AANTALARG', uitleg: 'Telt hoeveel cellen niet leeg zijn.', fn: (...a) => a.flatMap(vlak).filter((w) => w !== null && w !== '' && w !== undefined).length },
-  { naam: 'AFRONDEN', uitleg: 'Rondt af op een aantal decimalen.', fn: (g, d) => { const f = 10 ** Number(d ?? 0); return Math.round(Number(g) * f) / f; } },
-  { naam: 'ALS', uitleg: 'Geeft de ene waarde als de voorwaarde waar is, anders de andere.', fn: (v, waar, onwaar) => (v ? (waar as Waarde) ?? true : (onwaar as Waarde) ?? false) },
-  { naam: 'AANTAL.ALS', uitleg: 'Telt de cellen die aan een voorwaarde voldoen.', fn: (bereik, criterium) => vlak(bereik).filter((w) => voldoetAan(w, criterium as Waarde)).length },
+  { naam: 'AFRONDEN', uitleg: 'Rondt af op een aantal decimalen.', fn: (g, d) => { const f = 10 ** Number(enkel(d) ?? 0); return Math.round(Number(enkel(g)) * f) / f; } },
+  { naam: 'ALS', uitleg: 'Geeft de ene waarde als de voorwaarde waar is, anders de andere.', fn: (v, waar, onwaar) => (enkel(v) ? enkel(waar) ?? true : enkel(onwaar) ?? false) },
+  { naam: 'AANTAL.ALS', uitleg: 'Telt de cellen die aan een voorwaarde voldoen.', fn: (bereik, criterium) => vlak(bereik).filter((w) => voldoetAan(w, enkel(criterium))).length },
   { naam: 'SOM.ALS', uitleg: 'Telt de cellen op die aan een voorwaarde voldoen.', fn: (bereik, criterium, optelBereik) => {
       const sleutels = vlak(bereik);
       const waarden = optelBereik === undefined ? sleutels : vlak(optelBereik);
-      return sleutels.reduce<number>((som, s, i) => (voldoetAan(s, criterium as Waarde) && typeof waarden[i] === 'number' ? som + (waarden[i] as number) : som), 0);
+      const crit = enkel(criterium);
+      return sleutels.reduce<number>((som, s, i) => (voldoetAan(s, crit) && typeof waarden[i] === 'number' ? som + (waarden[i] as number) : som), 0);
     } },
 
   // --- Focus 2 + 8: zoekfuncties ---
-  { naam: 'VERT.ZOEKEN', uitleg: 'Zoekt een waarde in de eerste kolom en geeft een waarde uit dezelfde rij.', fn: (z, t, i, b) => zoekInTabel(z as Waarde, tabel(t), Number(i), b === undefined ? true : Boolean(b), false) },
-  { naam: 'HORIZ.ZOEKEN', uitleg: 'Zoekt een waarde in de eerste rij en geeft een waarde uit dezelfde kolom.', fn: (z, t, i, b) => zoekInTabel(z as Waarde, tabel(t), Number(i), b === undefined ? true : Boolean(b), true) },
+  { naam: 'VERT.ZOEKEN', uitleg: 'Zoekt een waarde in de eerste kolom en geeft een waarde uit dezelfde rij.', fn: (z, t, i, b) => zoekInTabel(enkel(z), tabel(t), Number(enkel(i)), b === undefined ? true : Boolean(enkel(b)), false) },
+  { naam: 'HORIZ.ZOEKEN', uitleg: 'Zoekt een waarde in de eerste rij en geeft een waarde uit dezelfde kolom.', fn: (z, t, i, b) => zoekInTabel(enkel(z), tabel(t), Number(enkel(i)), b === undefined ? true : Boolean(enkel(b)), true) },
   { naam: 'X.ZOEKEN', uitleg: 'Zoekt een waarde en geeft het overeenkomstige resultaat terug.', fn: (z, zoekBereik, resultaatBereik, alsLeeg) => {
       const sleutels = vlak(zoekBereik);
       const resultaten = vlak(resultaatBereik);
+      const zoek = enkel(z);
       const pos = sleutels.findIndex((s) =>
-        typeof s === 'string' && typeof z === 'string' ? s.toLowerCase() === (z as string).toLowerCase() : s === z,
+        typeof s === 'string' && typeof zoek === 'string' ? s.toLowerCase() === zoek.toLowerCase() : s === zoek,
       );
-      if (pos === -1) return (alsLeeg as Waarde) ?? '#N/B';
+      if (pos === -1) return enkel(alsLeeg) ?? '#N/B';
       return resultaten[pos] ?? '#N/B';
     } },
 
   // --- Focus 8: datum en tekst ---
   { naam: 'VANDAAG', uitleg: 'Geeft de datum van vandaag.', fn: () => Math.floor(Date.now() / 86400000) + 25569 },
-  { naam: 'JAAR', uitleg: 'Geeft het jaartal van een datum.', fn: (d) => new Date((Number(d) - 25569) * 86400000).getUTCFullYear() },
-  { naam: 'MAAND', uitleg: 'Geeft de maand van een datum.', fn: (d) => new Date((Number(d) - 25569) * 86400000).getUTCMonth() + 1 },
-  { naam: 'DAG', uitleg: 'Geeft de dag van een datum.', fn: (d) => new Date((Number(d) - 25569) * 86400000).getUTCDate() },
-  { naam: 'LINKS', uitleg: 'Geeft de eerste tekens van een tekst.', fn: (t, n) => String(t).slice(0, Number(n ?? 1)) },
-  { naam: 'RECHTS', uitleg: 'Geeft de laatste tekens van een tekst.', fn: (t, n) => String(t).slice(-Number(n ?? 1)) },
-  { naam: 'LENGTE', uitleg: 'Geeft het aantal tekens in een tekst.', fn: (t) => String(t ?? '').length },
+  { naam: 'JAAR', uitleg: 'Geeft het jaartal van een datum.', fn: (d) => new Date((Number(enkel(d)) - 25569) * 86400000).getUTCFullYear() },
+  { naam: 'MAAND', uitleg: 'Geeft de maand van een datum.', fn: (d) => new Date((Number(enkel(d)) - 25569) * 86400000).getUTCMonth() + 1 },
+  { naam: 'DAG', uitleg: 'Geeft de dag van een datum.', fn: (d) => new Date((Number(enkel(d)) - 25569) * 86400000).getUTCDate() },
+  { naam: 'LINKS', uitleg: 'Geeft de eerste tekens van een tekst.', fn: (t, n) => String(enkel(t)).slice(0, Number(enkel(n) ?? 1)) },
+  { naam: 'RECHTS', uitleg: 'Geeft de laatste tekens van een tekst.', fn: (t, n) => String(enkel(t)).slice(-Number(enkel(n) ?? 1)) },
+  { naam: 'LENGTE', uitleg: 'Geeft het aantal tekens in een tekst.', fn: (t) => String(enkel(t) ?? '').length },
   { naam: 'EN', uitleg: 'Waar als alle voorwaarden waar zijn.', fn: (...a) => a.flatMap(vlak).every(Boolean) },
   { naam: 'OF', uitleg: 'Waar als minstens één voorwaarde waar is.', fn: (...a) => a.flatMap(vlak).some(Boolean) },
-  { naam: 'NIET', uitleg: 'Keert waar en onwaar om.', fn: (v) => !v },
+  { naam: 'NIET', uitleg: 'Keert waar en onwaar om.', fn: (v) => !enkel(v) },
 ];
