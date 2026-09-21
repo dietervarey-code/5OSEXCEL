@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { huidigeSessie } from '@/lib/auth';
 import { vindOpgave } from '@/data/oefeningen';
 import { startSessie } from '@/lib/opslag';
+import { lesBijOefening } from '@/lib/lessen';
 import OefeningWerkruimte from '@/components/OefeningWerkruimte';
 
 export const dynamic = 'force-dynamic';
@@ -23,12 +24,17 @@ export default async function Oefenen() {
     fout = 'De databank is niet bereikbaar, dus je werk wordt nu niet bewaard.';
   }
 
+  // De bijbehorende theorie, zodat de leerling ze kan herlezen zonder de
+  // oefening te verlaten en opnieuw te moeten beginnen.
+  const les = await lesBijOefening(opgave.id);
+
   return (
     <OefeningWerkruimte
       opgave={opgave}
       naam={aangemeld.naam}
       sessieId={sessieId}
       opslagFout={fout}
+      les={les}
     />
   );
 }

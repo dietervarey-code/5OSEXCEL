@@ -45,7 +45,8 @@ export default async function Leerkracht() {
           </span>
         </div>
         <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
-          <Link href="/leerkracht/leerlingen">Leerlingen beheren →</Link>
+          <Link href="/leerkracht/lessen">Lessen</Link>
+          <Link href="/leerkracht/leerlingen">Leerlingen</Link>
           <form action="/api/uitloggen" method="post">
             <button type="submit">Afmelden</button>
           </form>

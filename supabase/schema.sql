@@ -98,3 +98,46 @@ alter table gebeurtenissen enable row level security;
 
 revoke all on leerlingen, sessies, pogingen, gebeurtenissen from anon, authenticated;
 revoke all on all sequences in schema public from anon, authenticated;
+
+-- =====================================================================
+--  Lessen — theorie per onderwerp, om naast de oefening te herlezen
+-- =====================================================================
+create table if not exists lessen (
+  id             uuid primary key default gen_random_uuid(),
+  focus          integer not null check (focus between 1 and 9),
+  volgnummer     integer not null default 0,
+  titel          text not null,
+  samenvatting   text not null default '',
+  inhoud         text not null default '',          -- markdown
+  oefening_id    text,                              -- optionele koppeling
+  gepubliceerd   boolean not null default false,
+  aangemaakt_op  timestamptz not null default now(),
+  gewijzigd_op   timestamptz not null default now()
+);
+
+create index if not exists lessen_volgorde_idx on lessen (focus, volgnummer);
+create index if not exists lessen_oefening_idx on lessen (oefening_id);
+
+-- ---------------------------------------------------------------------
+--  Media bij een les: video's en bestanden
+--
+--  Video's zijn LINKS naar YouTube of Vimeo, geen uploads. Een filmpje van
+--  150 MB dat 25 leerlingen bekijken is 3,75 GB verkeer; de gratis Supabase
+--  geeft er ongeveer 5 GB per maand. Bestanden (voorbeeld-xlsx, pdf) zijn
+--  klein genoeg en gaan wel naar Storage.
+-- ---------------------------------------------------------------------
+create table if not exists lesmedia (
+  id             uuid primary key default gen_random_uuid(),
+  les_id         uuid not null references lessen (id) on delete cascade,
+  soort          text not null check (soort in ('video', 'bestand')),
+  titel          text not null,
+  bron           text not null,      -- video: de URL; bestand: het pad in Storage
+  volgnummer     integer not null default 0,
+  aangemaakt_op  timestamptz not null default now()
+);
+
+create index if not exists lesmedia_les_idx on lesmedia (les_id, volgnummer);
+
+alter table lessen   enable row level security;
+alter table lesmedia enable row level security;
+revoke all on lessen, lesmedia from anon, authenticated;

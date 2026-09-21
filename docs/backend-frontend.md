@@ -21,6 +21,16 @@ Open **SQL Editor › New query**, plak de volledige inhoud van
 Dat maakt vier tabellen: `leerlingen`, `sessies`, `pogingen` en `gebeurtenissen`.
 Het script mag je meermaals draaien; bestaande tabellen blijven ongemoeid.
 
+### De opslagmap voor lesmateriaal
+
+Ga naar **Storage › New bucket**, noem ze **`lesmateriaal`** en laat ze op
+**private** staan. Daar komen voorbeeldwerkmappen, pdf's en schermafbeeldingen bij de
+lessen in. Leerlingen krijgen er een link naartoe die na een uur vervalt.
+
+> **Zet hier geen filmpjes in.** De gratis Supabase geeft 1 GB opslag en ongeveer
+> 5 GB verkeer per maand. Eén filmpje van 150 MB dat 25 leerlingen bekijken is al
+> 3,75 GB. Video's horen op YouTube of Vimeo — zie *Lessen* hieronder.
+
 ### De sleutels
 
 Onder **Project Settings**:
@@ -129,6 +139,43 @@ node scripts/maak-leerlingen.mjs klas5os.csv
 Bestaande accounts blijven ongemoeid; pas met `--reset` krijgen ze een nieuw wachtwoord.
 Beide wegen gebruiken dezelfde regels, dus een leerling krijgt via het script dezelfde
 gebruikersnaam als via het portaal.
+
+---
+
+## 5. Lessen en filmpjes
+
+Onder **Lessen beheren** schrijf je de theorie die bij een oefening hoort. De tekst is
+Markdown: `## Kop`, `**vet**`, `` `=SOM(A1:A5)` `` voor formules, lijsten met `-`, en
+tabellen met `|`. Er is een voorbeeldknop om te zien hoe het bij de leerling toekomt.
+
+Een les staat eerst in **concept**: alleen jij ziet ze. Met *Publiceren voor de klas*
+komt ze in het overzicht van de leerlingen. Koppel je de les aan een oefening, dan
+verschijnt daar een link "Theorie herlezen" die in een nieuw tabblad opent — zo blijft
+het ingevulde werkblad staan.
+
+### Filmpjes
+
+Zet je filmpje op **YouTube** of **Vimeo** als *verborgen* / *niet-vermeld* en plak de
+link in het portaal. Dan is het niet vindbaar via een zoekmachine, maar wel te bekijken
+door wie de les opent.
+
+Alleen die twee diensten worden aanvaard. Een willekeurig adres wordt geweigerd: anders
+zou een link in een les een vreemde pagina kunnen laden binnen een portaal waar
+leerlingen aangemeld zijn. YouTube-video's spelen via `youtube-nocookie.com`.
+
+Waarom geen uploads? Zie het kader bij de opslagmap hierboven — je zou de gratis limiet
+met twee filmpjes opgebruiken.
+
+### Bestanden
+
+Een voorbeeldwerkmap, een pdf of een schermafbeelding laad je wel gewoon op, tot 20 MB
+per bestand. Verwijder je het item, dan verdwijnt ook het bestand uit de opslag.
+
+### Een les om mee te beginnen
+
+`supabase/voorbeeldles.sql` bevat één uitgewerkte les over SOM en absolute
+celverwijzing, gekoppeld aan de factuuroefening. Uitvoeren in de SQL Editor is optioneel;
+daarna bewerk je ze gewoon in het portaal.
 
 ---
 

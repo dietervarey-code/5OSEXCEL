@@ -10,6 +10,7 @@ genoeg is voor deze cursus, vóór er een heel portaal omheen gebouwd wordt.
 
 ## Wat werkt
 
+- Lessen met theorie, voorbeelden, tabellen, filmpjes en bijlagen — te schrijven in het portaal
 - Accountbeheer in het portaal zelf: namen plakken, wachtwoorden krijgen, opnieuw instellen
 - Aanmelden met gebruikersnaam en wachtwoord uit een tabel die de leerkracht beheert
 - Rekenblad in de browser ([Univer](https://github.com/dream-num/univer), Apache-2.0) met lint, formulebalk, celopmaak en meerdere bladen
@@ -63,6 +64,8 @@ misgaat. Ze toont nooit de waarde van een instelling.
 app/
   page.tsx                  aanmelden
   setup/page.tsx            eenmalig het eerste leerkrachtaccount
+  lessen/                   theorie lezen (leerling)
+  leerkracht/lessen/        theorie schrijven
   oefenen/page.tsx          werkruimte van de leerling
   leerkracht/page.tsx       opvolging
   leerkracht/leerlingen/    accountbeheer
@@ -77,6 +80,9 @@ components/
   OefeningWerkruimte.tsx    opdracht + rekenblad + feedback
 lib/
   accounts.mjs              gebruikersnamen en wachtwoorden (gedeeld met het script)
+  lessen.ts                 lessen en media  (server-only)
+  bestanden.ts              Storage          (server-only)
+  video.ts                  YouTube/Vimeo-links veilig insluiten
   nl-functies.ts            SOM, ALS, VERT.ZOEKEN … als echte functies
   nakijken.ts               checks uitvoeren      (server-only)
   telemetrie.ts             schermgebruik meten
@@ -84,6 +90,7 @@ lib/
   opslag.ts                 alle databanktoegang  (server-only)
 supabase/
   schema.sql                tabellen en afscherming
+  voorbeeldles.sql          één uitgewerkte les om mee te beginnen
 data/oefeningen/
   factuur.opgave.ts         startbestand + opdracht (gaat naar de browser)
   factuur.sleutel.ts        antwoordsleutel     (server-only)
@@ -129,4 +136,4 @@ mondeling in, en stem het gebruik af met de school en de DPO voor je het inzet.
 
 1. `nl-NL`-vertaling van de menubalk
 2. Uitzoeken wat er kan met draaitabellen (Focus 7) en afdrukinstellingen (Focus 3)
-3. Oefeningen 2 t.e.m. 7 uit `docs/leerlijn.md`
+3. Oefeningen 2 t.e.m. 7 uit `docs/leerlijn.md`, met de bijbehorende lessen

@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import type { Opgave, CelInzending } from '@/lib/werkblad-types';
 import { useTelemetrie } from '@/lib/telemetrie';
 
@@ -24,11 +25,13 @@ export default function OefeningWerkruimte({
   naam,
   sessieId,
   opslagFout,
+  les,
 }: {
   opgave: Opgave;
   naam: string;
   sessieId: string | null;
   opslagFout: string | null;
+  les: { id: string; titel: string } | null;
 }) {
   const lezer = useRef<(() => CelInzending[]) | null>(null);
   const [resultaat, setResultaat] = useState<Resultaat | null>(null);
@@ -70,6 +73,7 @@ export default function OefeningWerkruimte({
           <div className="gedempt">{opgave.focus}</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <Link href="/lessen" className="gedempt">Lessen</Link>
           <span className="gedempt">{naam}</span>
           <form action="/api/uitloggen" method="post">
             <button type="submit" formAction="/api/uitloggen">Afmelden</button>
@@ -89,6 +93,14 @@ export default function OefeningWerkruimte({
           <button className="primair" onClick={kijkNa} disabled={bezig} style={{ width: '100%', marginTop: '0.5rem' }}>
             {bezig ? 'Nakijken…' : 'Nakijken'}
           </button>
+
+          {/* Opent in een nieuw tabblad: zo blijft het ingevulde werkblad staan. */}
+          {les && (
+            <a href={`/lessen/${les.id}`} target="_blank" rel="noopener noreferrer"
+               style={{ display: 'block', marginTop: '0.6rem', textAlign: 'center', fontSize: '0.88rem' }}>
+              Theorie herlezen: {les.titel}
+            </a>
+          )}
 
           {opslagFout && <div className="melding waarschuwing" style={{ marginTop: '0.8rem' }}>{opslagFout}</div>}
           {fout && <div className="melding fout" style={{ marginTop: '0.8rem' }}>{fout}</div>}
