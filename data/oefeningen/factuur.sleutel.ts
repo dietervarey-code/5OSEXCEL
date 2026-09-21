@@ -62,7 +62,9 @@ export const factuurChecks: Check[] = [
     omschrijving: 'Bedragen staan in valuta met twee decimalen',
     punten: 1,
     cellen: ['E12', 'E13', 'E14', 'E15', 'E16', 'E18', 'E19', 'E20'],
-    getalnotatiePatroon: '(€|EUR|\\[\\$).*0\\.00|0\\.00.*(€|EUR)',
-    hint: 'Selecteer E12:E20 en kies Start › Getalnotatie › Valuta met 2 decimalen.',
+    // Twee decimalen én een valutateken, welk teken dan ook: de valutaknop van
+    // het werkblad levert dollars, en daar kan de leerling niets aan doen.
+    getalnotatiePatroon: '^(?=.*0\\.00)(?=.*(€|\\$|£|EUR|\\[\\$)).*$',
+    hint: 'Selecteer E12:E20 en kies in de werkbalk de getalnotatie Valuta.',
   },
 ];

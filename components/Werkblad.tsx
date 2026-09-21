@@ -111,7 +111,12 @@ export default function Werkblad({ werkmap, opGereed, opWijziging }: Props) {
           const laatsteKolom = Math.min(werkmap.sheets[werkmap.sheetOrder[0]].columnCount, 20);
           const bereik = blad.getRange(0, 0, laatsteRij, laatsteKolom);
 
+          // getValues() levert de OPGEMAAKTE tekst zodra er een getalnotatie op
+          // staat ("$3,253.40 "). getRawValues() geeft het onderliggende getal.
+          // We sturen allebei mee: de server rekent met het getal en gebruikt de
+          // tekst alleen als terugval.
           const waarden = bereik.getValues();
+          const ruwe = bereik.getRawValues();
           const formules = bereik.getFormulas();
           const notaties = bereik.getNumberFormats();
           const stijlen = bereik.getCellStyles();
@@ -123,9 +128,12 @@ export default function Werkblad({ werkmap, opGereed, opWijziging }: Props) {
               const formuleTekst = formules?.[r]?.[k] || null;
               if ((waarde === null || waarde === '') && !formuleTekst) continue;
 
+              const ruw = ruwe?.[r]?.[k];
+
               cellen.push({
                 cel: positieNaarCel(r, k),
                 waarde: waarde as CelInzending['waarde'],
+                ruweWaarde: (typeof ruw === 'object' && ruw !== null ? undefined : ruw) as CelInzending['ruweWaarde'],
                 formule: formuleTekst,
                 opmaak: {
                   vet: Boolean((stijlen?.[r]?.[k] as { bl?: number } | undefined)?.bl),

@@ -114,13 +114,16 @@ Registreer ze daarna in `data/oefeningen/index.ts` en `data/oefeningen/sleutels.
 Het portaal registreert per oefensessie hoe lang de leerling bezig is, hoe vaak het
 oefenvenster uit beeld gaat en hoe lang, en hoeveel pogingen er nodig waren.
 
+Die cijfers staan **niet** op het scherm van de leerling; alleen de leerkracht ziet ze.
+
 Het registreert **niet** wat er in een ander venster gebeurt — dat kan een webpagina
 technisch niet zien — en een tweede scherm of gsm valt er helemaal buiten. Het is dus
 een indicatie om een gesprek mee te beginnen, geen bewijs.
 
-De leerling ziet dit ook: de meting staat zichtbaar in de balk en er staat een
-uitleg in de zijbalk. Stem het gebruik af met de school en de DPO voor je het
-klassikaal inzet.
+In de zijbalk staat één neutrale zin: "Je leerkracht volgt je werk aan deze
+oefening op." Wat er precies gemeten wordt, staat er bewust niet bij — anders
+leren leerlingen vooral het tabblad open te laten staan. Licht de klas wel één keer
+mondeling in, en stem het gebruik af met de school en de DPO voor je het inzet.
 
 ## Volgende stappen
 

@@ -44,13 +44,58 @@ function isFoutwaarde(waarde: unknown): boolean {
   return typeof waarde === 'string' && FOUTWAARDEN.includes(waarde.trim().toUpperCase());
 }
 
-function getalGelijk(a: unknown, b: number, tolerantie: number): boolean {
-  const getal = typeof a === 'number' ? a : Number(String(a ?? '').replace(',', '.').replace(/[^\d.-]/g, ''));
-  return Number.isFinite(getal) && Math.abs(getal - b) <= tolerantie;
+/**
+ * Zet een celwaarde om naar een getal.
+ *
+ * Zodra er een getalnotatie op de cel staat, stuurt het werkblad de opgemaakte
+ * tekst door: "$3,253.40 " of "€ 1.234,56". Beide schrijfwijzen komen voor, en
+ * welk teken de decimalen aangeeft hangt van de notatie af. We kijken daarom
+ * naar het LAATSTE voorkomen van een komma of punt: dat is de decimaalscheiding,
+ * al de rest zijn duizendtalscheidingen.
+ */
+export function naarGetal(waarde: unknown): number {
+  if (typeof waarde === 'number') return waarde;
+  if (typeof waarde !== 'string') return Number.NaN;
+
+  // Valutatekens, spaties en haakjes eraf; het minteken en de scheidingstekens blijven.
+  const negatief = /^\(.*\)$/.test(waarde.trim()) || waarde.includes('-');
+  let tekst = waarde.replace(/[^\d,.]/g, '');
+  if (!tekst) return Number.NaN;
+
+  const laatsteKomma = tekst.lastIndexOf(',');
+  const laatstePunt = tekst.lastIndexOf('.');
+
+  if (laatsteKomma > laatstePunt) {
+    // 1.234,56 — punt scheidt duizendtallen, komma de decimalen.
+    tekst = tekst.replace(/\./g, '').replace(',', '.');
+  } else if (laatstePunt > laatsteKomma) {
+    // 1,234.56 — komma scheidt duizendtallen.
+    tekst = tekst.replace(/,/g, '');
+  } else {
+    // Geen van beide, of alleen scheidingstekens van één soort.
+    tekst = tekst.replace(/,/g, '');
+  }
+
+  const getal = Number(tekst);
+  if (!Number.isFinite(getal)) return Number.NaN;
+  return negatief ? -Math.abs(getal) : getal;
+}
+
+function getalGelijk(cel: CelInzending, verwacht: number, tolerantie: number): boolean {
+  // Eerst het onderliggende getal; de opgemaakte tekst is alleen terugval.
+  for (const kandidaat of [cel.ruweWaarde, cel.waarde]) {
+    if (kandidaat === undefined || kandidaat === null || kandidaat === '') continue;
+    const getal = naarGetal(kandidaat);
+    if (Number.isFinite(getal) && Math.abs(getal - verwacht) <= tolerantie) return true;
+  }
+  return false;
 }
 
 export function voerCheckUit(check: Check, inzending: CelInzending[]): CheckResultaat {
-  const tolerantie = check.tolerantie ?? 0.005;
+  // Standaard één cent speling: een cel die op twee decimalen staat toont
+  // 683,21 terwijl de echte uitkomst 683,214 is. Zonder deze marge zou een
+  // correcte berekening afgekeurd worden zodra de leerling valuta-opmaak zet.
+  const tolerantie = check.tolerantie ?? 0.01;
   const problemen: string[] = [];
 
   check.cellen.forEach((cel, i) => {
@@ -62,8 +107,8 @@ export function voerCheckUit(check: Check, inzending: CelInzending[]): CheckResu
     }
 
     // 1. Levert de cel een foutwaarde op? Dan heeft de rest geen zin.
-    if (isFoutwaarde(ingevuld.waarde)) {
-      problemen.push(`${cel} geeft ${String(ingevuld.waarde).trim()}`);
+    if (isFoutwaarde(ingevuld.waarde) || isFoutwaarde(ingevuld.ruweWaarde)) {
+      problemen.push(`${cel} geeft ${String(ingevuld.ruweWaarde ?? ingevuld.waarde).trim()}`);
       return;
     }
 
@@ -72,8 +117,9 @@ export function voerCheckUit(check: Check, inzending: CelInzending[]): CheckResu
     if (verwacht !== undefined) {
       const juist =
         typeof verwacht === 'number'
-          ? getalGelijk(ingevuld.waarde, verwacht, tolerantie)
-          : String(ingevuld.waarde ?? '').trim().toLowerCase() === verwacht.trim().toLowerCase();
+          ? getalGelijk(ingevuld, verwacht, tolerantie)
+          : String(ingevuld.ruweWaarde ?? ingevuld.waarde ?? '').trim().toLowerCase() ===
+            verwacht.trim().toLowerCase();
       if (!juist) problemen.push(`${cel} geeft niet het juiste resultaat`);
     }
 

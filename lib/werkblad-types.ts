@@ -35,7 +35,10 @@ export type WerkmapData = {
 /** Wat de browser bij het nakijken terugstuurt: per cel de waarde, de formule en de opmaak. */
 export type CelInzending = {
   cel: string;
+  /** Wat op het scherm staat — met getalnotatie is dit tekst, bv. "$3,253.40 ". */
   waarde: string | number | boolean | null;
+  /** De onderliggende waarde zonder opmaak. Ontbreekt bij oudere inzendingen. */
+  ruweWaarde?: string | number | boolean | null;
   formule: string | null;
   opmaak: { vet?: boolean; getalnotatie?: string } | null;
 };

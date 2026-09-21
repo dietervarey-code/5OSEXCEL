@@ -19,12 +19,6 @@ type Resultaat = {
   resultaten: { checkId: string; omschrijving: string; punten: number; behaald: boolean; feedback: string }[];
 };
 
-function duur(ms: number): string {
-  const minuten = Math.floor(ms / 60000);
-  const seconden = Math.floor((ms % 60000) / 1000);
-  return minuten > 0 ? `${minuten} min ${seconden}s` : `${seconden}s`;
-}
-
 export default function OefeningWerkruimte({
   opgave,
   naam,
@@ -41,7 +35,9 @@ export default function OefeningWerkruimte({
   const [bezig, setBezig] = useState(false);
   const [fout, setFout] = useState<string | null>(null);
 
-  const meting = useTelemetrie(sessieId, true);
+  // De meting blijft lopen; ze wordt alleen niet meer aan de leerling getoond.
+  // De teruggegeven samenvatting gebruiken we bewust niet.
+  useTelemetrie(sessieId, true);
 
   const opGereed = useCallback((lees: () => CelInzending[]) => {
     lezer.current = lees;
@@ -74,10 +70,6 @@ export default function OefeningWerkruimte({
           <div className="gedempt">{opgave.focus}</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          {/* Bewust zichtbaar: leerlingen horen te weten dat dit meegeteld wordt. */}
-          <span className="gedempt" title="Je leerkracht ziet hoe lang dit scherm openstond.">
-            {duur(meting.actiefMs)} bezig · {meting.keerWeg}× weggeklikt
-          </span>
           <span className="gedempt">{naam}</span>
           <form action="/api/uitloggen" method="post">
             <button type="submit" formAction="/api/uitloggen">Afmelden</button>
@@ -123,9 +115,7 @@ export default function OefeningWerkruimte({
           )}
 
           <p className="gedempt" style={{ marginTop: '1.5rem', fontSize: '0.78rem' }}>
-            Tijdens deze oefening registreren we hoe lang je aan de oefening werkt, hoe vaak je
-            het scherm wegklikt en hoeveel pogingen je doet. Je leerkracht ziet dat. We kijken
-            niet mee in andere vensters of programma&apos;s.
+            Je leerkracht volgt je werk aan deze oefening op.
           </p>
         </aside>
 
