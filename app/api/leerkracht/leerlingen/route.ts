@@ -7,8 +7,10 @@ import {
   voegLeerlingenToe,
   zetWachtwoord,
   verwijderLeerling,
+  verklaar,
   type Rol,
 } from '@/lib/opslag';
+import { ConfiguratieFout } from '@/lib/supabase';
 
 /** Alleen een aangemelde leerkracht mag hier iets doen. */
 async function leerkrachtOfNiets() {
@@ -79,7 +81,16 @@ export async function POST(request: Request) {
   } catch (e) {
     console.error('[leerlingen POST]', e);
     return NextResponse.json(
-      { fout: e instanceof Error ? e.message : 'Aanmaken mislukte.' },
+      // Een verkeerd ingestelde SUPABASE_URL is geen 'aanmaken mislukte':
+      // geef de leerkracht de uitleg mee in plaats van de rauwe fout.
+      {
+        fout:
+          e instanceof ConfiguratieFout
+            ? e.message
+            : e instanceof Error
+              ? verklaar(e.message)
+              : 'Aanmaken mislukte.',
+      },
       { status: 500 },
     );
   }

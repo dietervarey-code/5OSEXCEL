@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { timingSafeEqual } from 'node:crypto';
 import { hashWachtwoord } from '@/lib/auth';
 import { maakGebruikersnaam } from '@/lib/accounts.mjs';
-import { bezetteGebruikersnamen, telLeerkrachten, voegLeerlingenToe } from '@/lib/opslag';
+import { bezetteGebruikersnamen, telLeerkrachten, voegLeerlingenToe, verklaar } from '@/lib/opslag';
+import { ConfiguratieFout } from '@/lib/supabase';
 
 /**
  * Eerste leerkrachtaccount aanmaken.
@@ -75,7 +76,16 @@ export async function POST(request: Request) {
   } catch (e) {
     console.error('[setup]', e);
     return NextResponse.json(
-      { fout: e instanceof Error ? e.message : 'Aanmaken mislukte.' },
+      // Een verkeerd ingestelde SUPABASE_URL is geen 'aanmaken mislukte':
+      // geef de leerkracht de uitleg mee in plaats van de rauwe fout.
+      {
+        fout:
+          e instanceof ConfiguratieFout
+            ? e.message
+            : e instanceof Error
+              ? verklaar(e.message)
+              : 'Aanmaken mislukte.',
+      },
       { status: 500 },
     );
   }
