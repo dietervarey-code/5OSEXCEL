@@ -1,5 +1,6 @@
 /** Vorm van de startgegevens die naar de browser gaan. Bevat nooit de oplossing. */
-export type Opgave = {
+/** Wat elke oefening gemeen heeft, of ze nu in de browser of in Excel gebeurt. */
+export type OpgaveBasis = {
   id: string;
   titel: string;
   focus: string;
@@ -13,11 +14,39 @@ export type Opgave = {
   leerdoel: string;
   stagecontext: string;
   opdrachten: string[];
+  maxScore: number;
+};
+
+/** Een oefening die in het rekenblad in de browser gemaakt wordt. */
+export type Opgave = OpgaveBasis & {
+  soort?: 'werkblad';
   /** Cellen die de leerling niet mag wijzigen (gegeven materiaal). */
   vergrendeld: string[];
   werkmap: WerkmapData;
-  maxScore: number;
 };
+
+/**
+ * Een oefening die de leerling in écht Excel maakt en daarna indient.
+ *
+ * Voor grafieken, draaitabellen en afdrukinstellingen: die bestaan niet in het
+ * rekenblad in de browser, en ze horen bij wat een leerling op stage doet.
+ */
+export type UploadOpgave = OpgaveBasis & {
+  soort: 'upload';
+  /** Het bestand dat de leerling downloadt om mee te beginnen. */
+  startbestand: {
+    bladnaam: string;
+    rijen: (string | number | null)[][];
+    /** Kolombreedtes in tekens, zodat het bestand er meteen netjes uitziet. */
+    breedtes?: number[];
+  };
+};
+
+export type EenOpgave = Opgave | UploadOpgave;
+
+export function isUpload(opgave: EenOpgave): opgave is UploadOpgave {
+  return opgave.soort === 'upload';
+}
 
 export type CelData = {
   /** Waarde. */ v?: string | number | boolean;

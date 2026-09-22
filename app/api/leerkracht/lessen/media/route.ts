@@ -5,6 +5,7 @@ import {
   MAX_BYTES,
   bestandstypeToegestaan,
   toegestaneTypes,
+  OpslagFout,
   uploadBestand,
   veiligePadnaam,
   verwijderBestand,
@@ -88,7 +89,9 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         fout:
-          e instanceof ConfiguratieFout ? e.message : e instanceof Error ? verklaar(e.message) : 'Toevoegen mislukte.',
+          e instanceof ConfiguratieFout || e instanceof OpslagFout ? e.message
+          : e instanceof Error ? verklaar(e.message)
+          : 'Toevoegen mislukte.',
       },
       { status: 500 },
     );

@@ -117,6 +117,8 @@ export async function bewaarPoging(invoer: {
   score: number;
   maxScore: number;
   resultaten: CheckResultaat[];
+  /** Alleen bij oefeningen die als bestand ingediend worden. */
+  bestandPad?: string;
 }): Promise<number> {
   const db = supabase();
 
@@ -144,10 +146,59 @@ export async function bewaarPoging(invoer: {
     score: invoer.score,
     max_score: invoer.maxScore,
     resultaten: invoer.resultaten,
+    bestand_pad: invoer.bestandPad ?? null,
   });
 
   if (error) throw new Error(`Poging bewaren mislukte: ${error.message}`);
   return nummer;
+}
+
+export type PogingRij = {
+  oefeningId: string;
+  nummer: number;
+  score: number;
+  maxScore: number;
+  ingediendOp: string;
+  /** Alleen bij uploadoefeningen: het pad in de bucket "inzendingen". */
+  bestandPad: string | null;
+  resultaten: CheckResultaat[];
+};
+
+/** Alle pogingen van één leerling, nieuwste eerst. Voor het leerkrachtoverzicht. */
+export async function pogingenVan(gebruikersnaam: string): Promise<PogingRij[]> {
+  const { data, error } = await supabase()
+    .from('pogingen')
+    .select('oefening_id, nummer, score, max_score, ingediend_op, bestand_pad, resultaten')
+    .eq('gebruikersnaam', gebruikersnaam);
+
+  if (error) throw new Error(`Pogingen ophalen mislukte: ${error.message}`);
+
+  return (data ?? [])
+    .map((p) => ({
+      oefeningId: p.oefening_id as string,
+      nummer: Number(p.nummer),
+      score: Number(p.score),
+      maxScore: Number(p.max_score),
+      ingediendOp: p.ingediend_op as string,
+      bestandPad: (p.bestand_pad as string | null) ?? null,
+      resultaten: (p.resultaten ?? []) as CheckResultaat[],
+    }))
+    .sort((a, b) => new Date(b.ingediendOp).getTime() - new Date(a.ingediendOp).getTime());
+}
+
+/** Naam en klas van één leerling, of null als die niet bestaat. */
+export async function leerlingGegevens(
+  gebruikersnaam: string,
+): Promise<{ gebruikersnaam: string; naam: string; klas: string } | null> {
+  const { data, error } = await supabase()
+    .from('leerlingen')
+    .select('gebruikersnaam, naam, klas')
+    .eq('gebruikersnaam', gebruikersnaam)
+    .limit(1);
+
+  if (error) throw new Error(`Leerling ophalen mislukte: ${error.message}`);
+  const rij = (data ?? [])[0];
+  return rij ? { gebruikersnaam: rij.gebruikersnaam, naam: rij.naam, klas: rij.klas } : null;
 }
 
 // --- Schermgebruik ----------------------------------------------------

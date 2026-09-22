@@ -18,14 +18,25 @@ Twee diensten, allebei gratis voor dit gebruik. Reken op een halfuur.
 Open **SQL Editor › New query**, plak de volledige inhoud van
 [`supabase/schema.sql`](../supabase/schema.sql) en klik **Run**.
 
-Dat maakt vier tabellen: `leerlingen`, `sessies`, `pogingen` en `gebeurtenissen`.
-Het script mag je meermaals draaien; bestaande tabellen blijven ongemoeid.
+Dat maakt zes tabellen: `leerlingen`, `sessies`, `pogingen`, `gebeurtenissen`,
+`lessen` en `lesmedia`. Het script mag je meermaals draaien; bestaande tabellen
+blijven ongemoeid. Draai je het opnieuw op een bestaande databank, dan voegt het
+ook de kolom `pogingen.bestand_pad` toe — die houdt bij waar het ingediende
+`.xlsx`-bestand van een leerling staat.
 
-### De opslagmap voor lesmateriaal
+### De twee opslagmappen
 
-Ga naar **Storage › New bucket**, noem ze **`lesmateriaal`** en laat ze op
-**private** staan. Daar komen voorbeeldwerkmappen, pdf's en schermafbeeldingen bij de
-lessen in. Leerlingen krijgen er een link naartoe die na een uur vervalt.
+Ga naar **Storage › New bucket** en maak er **twee**, allebei op **private**:
+
+| Bucket | Waarvoor |
+|---|---|
+| **`lesmateriaal`** | Voorbeeldwerkmappen, pdf's en schermafbeeldingen bij de lessen. Leerlingen krijgen er een link naartoe die na een uur vervalt. |
+| **`inzendingen`** | De `.xlsx`-bestanden die leerlingen indienen bij de oefeningen rond grafieken, draaitabellen en afdrukken. Alleen jij kunt ze openen, via het leerlingoverzicht. |
+
+Vergeet `inzendingen` niet. Zonder die bucket blijft het portaal werken — het werk
+wordt nagekeken en de score bewaard — maar het bestand zelf kun je achteraf niet
+meer openen. De leerling krijgt dan te zien dat zijn score bewaard is en zijn
+bestand niet.
 
 > **Zet hier geen filmpjes in.** De gratis Supabase geeft 1 GB opslag en ongeveer
 > 5 GB verkeer per maand. Eén filmpje van 150 MB dat 25 leerlingen bekijken is al

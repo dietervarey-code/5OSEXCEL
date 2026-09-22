@@ -1,9 +1,11 @@
 import { notFound, redirect } from 'next/navigation';
 import { huidigeSessie } from '@/lib/auth';
 import { vindOpgave } from '@/data/oefeningen';
+import { isUpload } from '@/lib/werkblad-types';
 import { startSessie } from '@/lib/opslag';
 import { lesBijOefening } from '@/lib/lessen';
 import OefeningWerkruimte from '@/components/OefeningWerkruimte';
+import UploadWerkruimte from '@/components/UploadWerkruimte';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,6 +27,20 @@ export default async function Oefening({ params }: { params: Promise<{ id: strin
   }
 
   const les = await lesBijOefening(opgave.id);
+
+  // Grafieken, draaitabellen en afdrukken gebeuren in echt Excel en komen als
+  // bestand binnen; de rest maakt de leerling in het rekenblad hiernaast.
+  if (isUpload(opgave)) {
+    return (
+      <UploadWerkruimte
+        opgave={opgave}
+        naam={aangemeld.naam}
+        sessieId={sessieId}
+        opslagFout={fout}
+        les={les}
+      />
+    );
+  }
 
   return (
     <OefeningWerkruimte

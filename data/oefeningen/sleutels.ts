@@ -21,6 +21,18 @@ import {
   koppelenHerstellenChecks, koppelenFactuurChecks,
 } from './f6-koppelen.sleutel';
 import { horizZoekenChecks, tekstChecks } from './f8-extra.sleutel';
+import {
+  afdrukStandChecks, afdrukPassendChecks, afdrukKopVoetChecks,
+  afdrukTitelrijenChecks, afdrukRapportChecks,
+} from './f3-afdrukken.sleutel';
+import {
+  staafChecks, lijnChecks, cirkelChecks, grafiekOpmaakChecks, tweeReeksenChecks,
+} from './f4-grafieken.sleutel';
+import {
+  draaiEersteChecks, draaiKruistabelChecks, draaiFunctieChecks,
+  draaiFilterChecks, draaiRapportChecks,
+} from './f7-draaitabellen.sleutel';
+import type { BestandCheck } from '@/lib/nakijken-bestand';
 import type { Check } from '@/lib/nakijken';
 
 /** Antwoordsleutels — server-only. */
@@ -54,4 +66,25 @@ export const SLEUTELS: Record<string, Check[]> = {
 
   'f8-horiz-zoeken': horizZoekenChecks,
   'f8-tekstfuncties': tekstChecks,
+};
+
+/** Sleutels voor de oefeningen die als .xlsx-bestand ingediend worden. */
+export const BESTANDSLEUTELS: Record<string, BestandCheck[]> = {
+  'f3-stand-en-marges': afdrukStandChecks,
+  'f3-passend-maken': afdrukPassendChecks,
+  'f3-kop-en-voettekst': afdrukKopVoetChecks,
+  'f3-titelrijen': afdrukTitelrijenChecks,
+  'f3-printklaar-rapport': afdrukRapportChecks,
+
+  'f4-staafdiagram': staafChecks,
+  'f4-lijndiagram': lijnChecks,
+  'f4-cirkeldiagram': cirkelChecks,
+  'f4-grafiek-opmaken': grafiekOpmaakChecks,
+  'f4-twee-reeksen': tweeReeksenChecks,
+
+  'f7-eerste-draaitabel': draaiEersteChecks,
+  'f7-kruistabel': draaiKruistabelChecks,
+  'f7-samenvattingsfunctie': draaiFunctieChecks,
+  'f7-filteren': draaiFilterChecks,
+  'f7-draairapport': draaiRapportChecks,
 };

@@ -141,3 +141,11 @@ create index if not exists lesmedia_les_idx on lesmedia (les_id, volgnummer);
 alter table lessen   enable row level security;
 alter table lesmedia enable row level security;
 revoke all on lessen, lesmedia from anon, authenticated;
+
+-- ---------------------------------------------------------------------
+--  Ingediende bestanden bij de Excel-oefeningen (Focus 3, 4 en 7)
+--
+--  De leerling maakt die in echt Excel en laadt het bestand op. We bewaren
+--  het pad, zodat de leerkracht het werk kan openen.
+-- ---------------------------------------------------------------------
+alter table pogingen add column if not exists bestand_pad text;

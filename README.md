@@ -1,16 +1,19 @@
 # 5OS Excel — oefenportaal
 
-Oefenportaal voor de Excel-lessen van 5OS. Leerlingen maken stagegerichte opdrachten
-in een rekenblad in de browser; de leerkracht ziet score, aantal pogingen, tijd en
-schermgebruik.
+Oefenportaal voor de Excel-lessen van 5OS. Leerlingen maken stagegerichte opdrachten —
+de meeste in een rekenblad in de browser, die rond grafieken, draaitabellen en afdrukken
+in Excel zelf. De leerkracht ziet score, aantal pogingen, tijd, schermgebruik en het
+ingediende werk.
 
-**Status: technische proef (fase 1).** Eén volledige oefening werkt van aanmelden tot
-score. De bedoeling van deze fase was uitzoeken of een rekenblad in de browser goed
-genoeg is voor deze cursus, vóór er een heel portaal omheen gebouwd wordt.
+**Status: werkend portaal.** 40 oefeningen over de acht Focussen van de cursus, met
+theorie, nakijken en opvolging. De acht Focussen zijn allemaal gedekt: wat een
+rekenblad in de browser kan, gebeurt in het portaal; grafieken, draaitabellen en
+afdrukken doen de leerlingen in echt Excel en dienen ze als `.xlsx` in.
 
 ## Wat werkt
 
-- 25 oefeningen, gegroepeerd per Focus, binnen elke Focus oplopend in moeilijkheid
+- 40 oefeningen, gegroepeerd per Focus, binnen elke Focus oplopend in moeilijkheid:
+  25 in het rekenblad in de browser, 15 in echt Excel (grafieken, draaitabellen, afdrukken)
 - Nagekeken wordt niet alleen de uitkomst, maar ook de gebruikte functie, de getalnotatie,
   de celopmaak, de sorteervolgorde en of de titels vastgezet zijn
 - 25 lessen met theorie, voorbeelden en tabellen — één per oefening
@@ -21,7 +24,8 @@ genoeg is voor deze cursus, vóór er een heel portaal omheen gebouwd wordt.
 - **Nederlandse functienamen**: `=SOM()`, `=ALS()`, `=VERT.ZOEKEN()`, `=AANTAL.ALS()` … werken zoals in de cursus
 - Nakijken op de server: uitkomst, gebruikte functie én getalnotatie, met gerichte feedback per deelopdracht
 - Opvolging: aantal pogingen, tijd, hoe vaak het oefenscherm uit beeld ging en hoe lang
-- Leerkrachtenoverzicht per leerling
+- Leerkrachtenoverzicht per leerling, met per oefening alle pogingen, wat er misging,
+  en het ingediende Excel-bestand om te openen
 
 ## Beperkingen — eerlijk gemeten, niet geschat
 
@@ -30,9 +34,8 @@ genoeg is voor deze cursus, vóór er een heel portaal omheen gebouwd wordt.
 | Nederlandse functienamen | Werkt. Ze zijn als echte functies geregistreerd, inclusief namen met een punt (`VERT.ZOEKEN`). |
 | Puntkomma's en ONWAAR | Werkt. De leerling mag typen zoals de cursus het schrijft: `=ALS(B5>100;"ja";"nee")` en `ONWAAR`. Het portaal vertaalt dat. Decimalen wél met een **punt**: `0.02`. |
 | Menubalk | Staat nog in het **Engels**. Univer heeft 19 talen, maar geen Nederlands. Een `nl-NL`-vertaling is handwerk en staat op de planning. |
-| Draaitabellen (Focus 7) | **Nog niet getest.** Zit in de commerciële uitbreiding van Univer, niet in het open-source deel. Hier is een aparte beslissing nodig. |
-| Afdrukinstellingen (Focus 3) | **Nog niet getest.** Marges, kop-/voettekst en "alles op één pagina" bestaan niet op dezelfde manier in de browser. Mogelijk een aparte oefenvorm nodig. |
-| Grafieken (Focus 4) | Nog niet getest. |
+| Grafieken, draaitabellen, afdrukken (Focus 4, 7, 3) | **Opgelost, maar anders.** Die drie zitten in de commerciële uitbreiding van Univer — en die is momenteel niet te koop. Daarom gebeuren ze in **echt Excel**: de leerling downloadt een startbestand, maakt de opdracht in Excel en laadt het bestand op. De server pakt de `.xlsx` uit en leest het grafiektype, de titel, de gegevensbereiken, de opbouw van de draaitabel en alle afdrukinstellingen. Op stage werken ze toch met het echte programma. |
+| Nakijken van draaitabellen | Getest tegen bestanden die met openpyxl gemaakt zijn en tegen een met de hand gebouwde OOXML-draaitabel. Eén draaitabel die **Excel zelf** opslaat, zou de laatste twijfel wegnemen. Grafieken en afdrukinstellingen zijn wel tegen echte Excel-structuren getest. |
 | Opslag | Supabase (Postgres). Zie `docs/backend-frontend.md` voor het opzetten. |
 | Nakijken vervalsen | Een leerling die de ontwikkelaarsconsole kent, kan een verzonnen antwoord naar de server sturen. De oplossingssleutel lekt niet, maar de score is niet fraudebestendig. Voor punten die echt meetellen: laat de toets klassikaal afleggen. |
 
@@ -70,13 +73,16 @@ app/
   page.tsx                  aanmelden
   setup/page.tsx            eenmalig het eerste leerkrachtaccount
   oefenen/                  overzicht van de reeks
-  oefenen/[id]/             één oefening
+  oefenen/[id]/             één oefening (rekenblad óf uploadopdracht)
   lessen/                   theorie lezen (leerling)
   leerkracht/lessen/        theorie schrijven
   oefenen/page.tsx          werkruimte van de leerling
   leerkracht/page.tsx       opvolging
+  leerkracht/leerling/[…]/  alle pogingen van één leerling + ingediend werk
   leerkracht/leerlingen/    accountbeheer
   api/nakijken/             nakijken op de server (sleutel blijft hier)
+  api/startbestand/         het .xlsx dat de leerling in Excel opent
+  api/indienen/             ingediend .xlsx nakijken en opbergen
   api/gebeurtenissen/       schermgebruik registreren
   api/login/                aanmelden tegen de tabel leerlingen
   api/leerkracht/           accounts aanmaken, resetten, verwijderen
@@ -85,6 +91,7 @@ app/
 components/
   Werkblad.tsx              Univer, met Nederlandse functienamen
   OefeningWerkruimte.tsx    opdracht + rekenblad + feedback
+  UploadWerkruimte.tsx      opdracht + startbestand + uploadvak + feedback
 lib/
   accounts.mjs              gebruikersnamen en wachtwoorden (gedeeld met het script)
   formules.ts               puntkomma's en WAAR/ONWAAR vertalen
@@ -93,6 +100,9 @@ lib/
   video.ts                  YouTube/Vimeo-links veilig insluiten
   nl-functies.ts            SOM, ALS, VERT.ZOEKEN … als echte functies
   nakijken.ts               checks uitvoeren      (server-only)
+  werkmap-lezen.ts          een .xlsx uitpakken en doorlichten (server-only)
+  nakijken-bestand.ts       checks op grafiek, draaitabel en afdruk (server-only)
+  startbestand.ts           het startbestand genereren (server-only)
   telemetrie.ts             schermgebruik meten
   supabase.ts               verbinding            (server-only)
   opslag.ts                 alle databanktoegang  (server-only)
@@ -102,6 +112,9 @@ supabase/
 data/oefeningen/
   factuur.opgave.ts         startbestand + opdracht (gaat naar de browser)
   factuur.sleutel.ts        antwoordsleutel     (server-only)
+  f3-afdrukken.ts           uploadopdrachten: afdrukken  (+ .sleutel.ts)
+  f4-grafieken.ts           uploadopdrachten: grafieken  (+ .sleutel.ts)
+  f7-draaitabellen.ts       uploadopdrachten: draaitabellen (+ .sleutel.ts)
 ```
 
 ### Een oefening toevoegen
@@ -125,6 +138,26 @@ werkmap te bouwen; kijk naar `01-voorraad.ts` als voorbeeld. Elke check kan drie
 
 Registreer ze daarna in `data/oefeningen/index.ts` en `data/oefeningen/sleutels.ts`.
 
+#### Een oefening die in echt Excel gemaakt wordt
+
+Zet `soort: 'upload'` op de opgave en geef ze een `startbestand` (bladnaam, rijen,
+kolombreedtes); daar genereert de server het `.xlsx` uit. De checks komen in
+`BESTANDSLEUTELS` en kijken naar wat alleen in een echt bestand bestaat:
+
+```ts
+{
+  id: 'type',
+  omschrijving: 'Het is een kolom- of staafdiagram',
+  punten: 3,
+  eis: { soort: 'grafiek', types: ['barChart', 'bar3DChart'], titelBevat: 'Omzet per maand' },
+  hint: 'Kies Invoegen › Kolom.',
+}
+```
+
+Naast `grafiek` bestaan `draaitabel` (rij-, kolom- en gegevensvelden, veldnamen,
+samenvattingsfunctie) en `afdruk` (staand/liggend, passend maken, kop- en voettekst,
+paginanummer, titelrijen, rasterlijnen, marges).
+
 ## Opvolging van leerlingen
 
 Het portaal registreert per oefensessie hoe lang de leerling bezig is, hoe vaak het
@@ -143,6 +176,7 @@ mondeling in, en stem het gebruik af met de school en de DPO voor je het inzet.
 
 ## Volgende stappen
 
-1. `nl-NL`-vertaling van de menubalk
-2. Uitzoeken wat er kan met draaitabellen (Focus 7) en afdrukinstellingen (Focus 3)
-3. Focus 3, 4 en 7 (afdrukken, grafieken, draaitabellen) vergen een licentie op Univer Pro
+1. Lessen schrijven bij de 15 oefeningen van Focus 3, 4 en 7 — die hebben nu wel
+   opdrachten, maar nog geen theoriepagina
+2. `nl-NL`-vertaling van de menubalk
+3. Eén draaitabel die in Excel zelf gemaakt is, om het nakijken daarvan te bevestigen

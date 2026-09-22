@@ -41,7 +41,8 @@ export default async function Leerkracht() {
         <div>
           <h1 style={{ marginBottom: 0 }}>Opvolging {aangemeld.klas} Excel</h1>
           <span className="gedempt">
-            Oefening: Factuur vervolledigen · {metWerk.length} van {rijen.length} leerlingen begonnen
+            {metWerk.length} van {rijen.length} leerlingen begonnen · klik op een naam voor de
+            pogingen en het ingediende werk
           </span>
         </div>
         <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
@@ -78,7 +79,13 @@ export default async function Leerkracht() {
               {rijen.map((r) => (
                 <tr key={r.gebruikersnaam}>
                   <td>
-                    <strong>{r.naam}</strong>
+                    {r.pogingen > 0 ? (
+                      <Link href={`/leerkracht/leerling/${encodeURIComponent(r.gebruikersnaam)}`}>
+                        <strong>{r.naam}</strong>
+                      </Link>
+                    ) : (
+                      <strong>{r.naam}</strong>
+                    )}
                     {r.pogingen === 0 && <span className="gedempt"> · nog niet begonnen</span>}
                     {/* De gebruikersnaam erbij, anders zijn twee gelijknamige
                         leerlingen in deze tabel niet uit elkaar te houden. */}

@@ -20,31 +20,50 @@ import {
   koppelenHerstellenOpgave, koppelenFactuurOpgave,
 } from './f6-koppelen';
 import { horizZoekenOpgave, tekstOpgave } from './f8-extra';
-import type { Opgave } from '@/lib/werkblad-types';
+import {
+  afdrukStandOpgave, afdrukPassendOpgave, afdrukKopVoetOpgave,
+  afdrukTitelrijenOpgave, afdrukRapportOpgave,
+} from './f3-afdrukken';
+import {
+  staafOpgave, lijnOpgave, cirkelOpgave, grafiekOpmaakOpgave, tweeReeksenOpgave,
+} from './f4-grafieken';
+import {
+  draaiEersteOpgave, draaiKruistabelOpgave, draaiFunctieOpgave,
+  draaiFilterOpgave, draaiRapportOpgave,
+} from './f7-draaitabellen';
+import type { EenOpgave } from '@/lib/werkblad-types';
 
 /**
  * Publieke catalogus: veilig om naar de browser te sturen.
  * Per Focus loopt de moeilijkheid op van ● naar ●●●●●.
  */
-const ALLE: Opgave[] = [
+const ALLE: EenOpgave[] = [
   // Focus 1 — rekenblad gebruiken en opmaken
   getalnotatieOpgave, tabelOpgave, sorterenOpgave, vastzettenOpgave, transponerenOpgave,
   // Focus 2 — formules en functies
   voorraadOpgave, prijslijstOpgave, factuurOpgave, verkoopOpgave, bestellingenOpgave, klantenOpgave,
+  // Focus 3 — afdrukken (in echt Excel)
+  afdrukStandOpgave, afdrukPassendOpgave, afdrukKopVoetOpgave,
+  afdrukTitelrijenOpgave, afdrukRapportOpgave,
+  // Focus 4 — grafieken (in echt Excel)
+  staafOpgave, lijnOpgave, cirkelOpgave, grafiekOpmaakOpgave, tweeReeksenOpgave,
   // Focus 5 — meerdere werkbladen
   bladenOphalenOpgave, bladenFiliaalOpgave, bladenVerschilOpgave, bladenGemiddeldeOpgave, bladenZoekenOpgave,
   // Focus 6 — koppelen
   koppelenPrijzenOpgave, koppelenZoekenOpgave, koppelenConsoliderenOpgave,
   koppelenHerstellenOpgave, koppelenFactuurOpgave,
+  // Focus 7 — draaitabellen (in echt Excel)
+  draaiEersteOpgave, draaiKruistabelOpgave, draaiFunctieOpgave,
+  draaiFilterOpgave, draaiRapportOpgave,
   // Focus 8 — geavanceerde functies
   xzoekenOpgave, genesteOpgave, horizZoekenOpgave, tekstOpgave,
 ];
 
-export const OEFENINGEN: Record<string, Opgave> = Object.fromEntries(ALLE.map((o) => [o.id, o]));
+export const OEFENINGEN: Record<string, EenOpgave> = Object.fromEntries(ALLE.map((o) => [o.id, o]));
 
 /** Gegroepeerd per Focus, binnen elke Focus op volgnummer. */
-export function oefeningenPerFocus(): { focus: number; oefeningen: Opgave[] }[] {
-  const groepen = new Map<number, Opgave[]>();
+export function oefeningenPerFocus(): { focus: number; oefeningen: EenOpgave[] }[] {
+  const groepen = new Map<number, EenOpgave[]>();
   for (const o of ALLE) {
     if (!groepen.has(o.focusNummer)) groepen.set(o.focusNummer, []);
     groepen.get(o.focusNummer)!.push(o);
@@ -57,10 +76,10 @@ export function oefeningenPerFocus(): { focus: number; oefeningen: Opgave[] }[] 
     }));
 }
 
-export function oefeningenOpVolgorde(): Opgave[] {
+export function oefeningenOpVolgorde(): EenOpgave[] {
   return oefeningenPerFocus().flatMap((g) => g.oefeningen);
 }
 
-export function vindOpgave(id: string): Opgave | undefined {
+export function vindOpgave(id: string): EenOpgave | undefined {
   return OEFENINGEN[id];
 }
