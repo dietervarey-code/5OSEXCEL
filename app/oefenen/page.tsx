@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { huidigeSessie } from '@/lib/auth';
 import { oefeningenPerFocus } from '@/data/oefeningen';
+import { isUpload } from '@/lib/werkblad-types';
 import { scoresVan, verklaar } from '@/lib/opslag';
 import { ConfiguratieFout } from '@/lib/supabase';
 
@@ -10,8 +11,11 @@ export const dynamic = 'force-dynamic';
 const FOCUSNAMEN: Record<number, string> = {
   1: 'Rekenblad gebruiken en opmaken',
   2: 'Formules en functies',
+  3: 'Afdrukken',
+  4: 'Grafieken',
   5: 'Meerdere werkbladen',
   6: 'Koppelen',
+  7: 'Draaitabellen',
   8: 'Geavanceerde functies',
 };
 
@@ -72,6 +76,17 @@ export default async function Oefeningen() {
                     Oefening {i + 1} · {o.focus}
                   </div>
                   <strong>{o.titel}</strong>
+                  {/* Voor deze oefening heb je Excel nodig; dat wil je weten
+                      vóór je klikt, niet erna. */}
+                  {isUpload(o) && (
+                    <span
+                      className="badge"
+                      style={{ marginLeft: '0.4rem', verticalAlign: 'middle' }}
+                      title="Deze oefening maak je in Excel zelf en laad je daarna op."
+                    >
+                      in Excel
+                    </span>
+                  )}
                   <div className="gedempt" style={{ marginTop: '0.2rem' }}>{o.leerdoel}</div>
                 </div>
                 <div style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
