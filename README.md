@@ -13,7 +13,7 @@ genoeg is voor deze cursus, vóór er een heel portaal omheen gebouwd wordt.
 - 25 oefeningen, gegroepeerd per Focus, binnen elke Focus oplopend in moeilijkheid
 - Nagekeken wordt niet alleen de uitkomst, maar ook de gebruikte functie, de getalnotatie,
   de celopmaak, de sorteervolgorde en of de titels vastgezet zijn
-- Acht lessen met theorie, voorbeelden en tabellen, gekoppeld aan een oefening
+- 25 lessen met theorie, voorbeelden en tabellen — één per oefening
 - Filmpjes en bijlagen bij een les — te beheren in het portaal
 - Accountbeheer in het portaal zelf: namen plakken, wachtwoorden krijgen, opnieuw instellen
 - Aanmelden met gebruikersnaam en wachtwoord uit een tabel die de leerkracht beheert
@@ -98,7 +98,7 @@ lib/
   opslag.ts                 alle databanktoegang  (server-only)
 supabase/
   schema.sql                tabellen en afscherming
-  lessen.sql                de acht lessen
+  lessen.sql                de 25 lessen
 data/oefeningen/
   factuur.opgave.ts         startbestand + opdracht (gaat naar de browser)
   factuur.sleutel.ts        antwoordsleutel     (server-only)
@@ -145,5 +145,4 @@ mondeling in, en stem het gebruik af met de school en de DPO voor je het inzet.
 
 1. `nl-NL`-vertaling van de menubalk
 2. Uitzoeken wat er kan met draaitabellen (Focus 7) en afdrukinstellingen (Focus 3)
-3. Lessen bij Focus 1, 5 en 6 — die oefeningen hebben nog geen eigen theoriepagina
-4. Focus 3, 4 en 7 (afdrukken, grafieken, draaitabellen) vergen een licentie op Univer Pro
+3. Focus 3, 4 en 7 (afdrukken, grafieken, draaitabellen) vergen een licentie op Univer Pro

@@ -173,7 +173,7 @@ per bestand. Verwijder je het item, dan verdwijnt ook het bestand uit de opslag.
 
 ### De lessen inladen
 
-`supabase/lessen.sql` bevat de acht lessen die bij de acht oefeningen horen. Voer het uit
+`supabase/lessen.sql` bevat de 25 lessen die bij de 25 oefeningen horen. Voer het uit
 in de SQL Editor. Het mag meermaals draaien: een les die al bij een oefening hoort, komt
 er niet nog eens bij. Daarna bewerk je ze gewoon in het portaal.
 
