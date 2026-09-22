@@ -44,6 +44,14 @@ export type BestandCheck = {
         kopVoettekst?: boolean;
         titelrijen?: boolean;
         rasterlijnen?: boolean;
+        /**
+         * Grens voor de linker- en rechtermarge, in inches (zo staan ze in het
+         * bestand). Dat is wat "Marges › Smal" echt verandert: 0,7" wordt 0,25".
+         * Boven en onder blijven bij Smal even breed als bij Normaal, dus daar
+         * kun je niet op controleren.
+         */
+        maxZijmarge?: number;
+        /** Grens voor alle vier de marges, in inches. */
         maxMarge?: number;
       };
 };
@@ -158,6 +166,23 @@ function controleerAfdruk(eis: Extract<BestandCheck['eis'], { soort: 'afdruk' }>
   if (eis.paginanummer && !a.paginanummer) fouten.push('er staat nog geen paginanummer in de kop- of voettekst');
   if (eis.titelrijen && !a.titelrijenHerhalen) fouten.push('de titelrijen worden nog niet op elke pagina herhaald');
   if (eis.rasterlijnen && !a.rasterlijnenAfdrukken) fouten.push('de rasterlijnen worden nog niet mee afgedrukt');
+  // De marges staan in inches in het bestand; de leerling ziet centimeters.
+  const inCm = (duim: number) => (duim * 2.54).toFixed(1).replace('.', ',');
+
+  if (eis.maxZijmarge !== undefined && a.marges) {
+    const zijkanten: [string, number | undefined][] = [
+      ['links', a.marges.links],
+      ['rechts', a.marges.rechts],
+    ];
+    const tegroot = zijkanten.filter(([, v]) => (v ?? 0) > eis.maxZijmarge!);
+    if (tegroot.length) {
+      const breedste = Math.max(...tegroot.map(([, v]) => v ?? 0));
+      fouten.push(
+        `de marge ${tegroot.map(([k]) => k).join(' en ')} is nog ${inCm(breedste)} cm breed`,
+      );
+    }
+  }
+
   if (eis.maxMarge !== undefined && a.marges) {
     const tegroot = Object.entries(a.marges).filter(([, v]) => (v ?? 0) > eis.maxMarge!);
     if (tegroot.length) {

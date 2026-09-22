@@ -15,8 +15,8 @@ export const afdrukStandChecks: BestandCheck[] = [
     id: 'marges',
     omschrijving: 'De marges zijn smal ingesteld',
     punten: 4,
-    eis: { soort: 'afdruk', maxMarge: 0.5 },
-    hint: 'Pagina-indeling › Marges › Smal. Dat zet alle marges op ongeveer 0,64 cm.',
+    eis: { soort: 'afdruk', maxZijmarge: 0.5 },
+    hint: 'Pagina-indeling › Marges › Smal. Dat zet de linker- en rechtermarge op 0,64 cm.',
   },
 ];
 
@@ -80,7 +80,7 @@ export const afdrukRapportChecks: BestandCheck[] = [
     id: 'marges',
     omschrijving: 'Smalle marges',
     punten: 2,
-    eis: { soort: 'afdruk', maxMarge: 0.5 },
+    eis: { soort: 'afdruk', maxZijmarge: 0.5 },
     hint: 'Pagina-indeling › Marges › Smal.',
   },
   {

@@ -90,7 +90,8 @@ export default async function LesPagina({ params }: { params: Promise<{ id: stri
 
       {les.oefeningId && (
         <div style={{ marginTop: '1.5rem' }}>
-          <Link href="/oefenen">
+          {/* Naar de oefening zelf, niet naar de lijst van veertig. */}
+          <Link href={`/oefenen/${les.oefeningId}`}>
             <button className="primair">Naar de oefening →</button>
           </Link>
         </div>

@@ -5,8 +5,8 @@ de meeste in een rekenblad in de browser, die rond grafieken, draaitabellen en a
 in Excel zelf. De leerkracht ziet score, aantal pogingen, tijd, schermgebruik en het
 ingediende werk.
 
-**Status: werkend portaal.** 40 oefeningen over de acht Focussen van de cursus, met
-theorie, nakijken en opvolging. De acht Focussen zijn allemaal gedekt: wat een
+**Status: werkend portaal.** 40 oefeningen over de acht Focussen van de cursus, elk met
+zijn eigen theoriepagina, nakijken en opvolging. De acht Focussen zijn allemaal gedekt: wat een
 rekenblad in de browser kan, gebeurt in het portaal; grafieken, draaitabellen en
 afdrukken doen de leerlingen in echt Excel en dienen ze als `.xlsx` in.
 
@@ -16,7 +16,7 @@ afdrukken doen de leerlingen in echt Excel en dienen ze als `.xlsx` in.
   25 in het rekenblad in de browser, 15 in echt Excel (grafieken, draaitabellen, afdrukken)
 - Nagekeken wordt niet alleen de uitkomst, maar ook de gebruikte functie, de getalnotatie,
   de celopmaak, de sorteervolgorde en of de titels vastgezet zijn
-- 25 lessen met theorie, voorbeelden en tabellen — één per oefening
+- 40 lessen met theorie, voorbeelden en tabellen — één per oefening
 - Filmpjes en bijlagen bij een les — te beheren in het portaal
 - Accountbeheer in het portaal zelf: namen plakken, wachtwoorden krijgen, opnieuw instellen
 - Aanmelden met gebruikersnaam en wachtwoord uit een tabel die de leerkracht beheert
@@ -108,7 +108,7 @@ lib/
   opslag.ts                 alle databanktoegang  (server-only)
 supabase/
   schema.sql                tabellen en afscherming
-  lessen.sql                de 25 lessen
+  lessen.sql                de 40 lessen
 data/oefeningen/
   factuur.opgave.ts         startbestand + opdracht (gaat naar de browser)
   factuur.sleutel.ts        antwoordsleutel     (server-only)
@@ -176,7 +176,6 @@ mondeling in, en stem het gebruik af met de school en de DPO voor je het inzet.
 
 ## Volgende stappen
 
-1. Lessen schrijven bij de 15 oefeningen van Focus 3, 4 en 7 — die hebben nu wel
-   opdrachten, maar nog geen theoriepagina
-2. `nl-NL`-vertaling van de menubalk
-3. Eén draaitabel die in Excel zelf gemaakt is, om het nakijken daarvan te bevestigen
+1. `nl-NL`-vertaling van de menubalk
+2. Eén draaitabel die in Excel zelf gemaakt is, om het nakijken daarvan te bevestigen
+3. Filmpjes bij de lessen — de plaats ervoor staat klaar, er staat nog niets in

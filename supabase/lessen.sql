@@ -1,5 +1,5 @@
 -- =====================================================================
---  Lessen bij de acht oefeningen
+--  Lessen bij de oefeningen — één per oefening, veertig in totaal
 --
 --  Uitvoeren in Supabase › SQL Editor. Mag meermaals draaien: een les die
 --  al bij een oefening hoort, wordt niet opnieuw toegevoegd.
@@ -1597,3 +1597,1069 @@ where not exists (select 1 from lessen where oefening_id = 'f8-tekstfuncties');
 -- reeks; binnen hun eigen Focus horen ze op 2 en 4.
 update lessen set volgnummer = 2 where oefening_id = 'xzoeken-artikelen' and volgnummer <> 2;
 update lessen set volgnummer = 4 where oefening_id = 'geneste-functies' and volgnummer <> 4;
+
+
+-- ---------------------------------------------------------------------
+--  FOCUS 3 · Afdrukken
+--
+--  Deze vijf horen bij de oefeningen die in echt Excel gemaakt worden.
+-- ---------------------------------------------------------------------
+insert into lessen (focus, volgnummer, titel, samenvatting, inhoud, oefening_id, gepubliceerd)
+select 3, 1,
+  'Van scherm naar papier: stand en marges',
+  'Waarom een blad dat er op het scherm goed uitziet, op papier uit elkaar valt — en wat je eraan doet.',
+$md$
+## Wat je na deze les kunt
+
+- Zien hoe je blad op papier valt vóór je iets afdrukt
+- Kiezen tussen staand en liggend
+- De marges instellen, en weten wat "Smal" precies verandert
+
+> Deze oefening maak je in **Excel zelf**. Een browser kent geen pagina’s, dus
+> afdrukinstellingen bestaan alleen in het echte programma. Op stage werk je daar toch mee.
+
+## 1. Een scherm schuift, papier niet
+
+Op het scherm scrol je gewoon verder naar rechts tot je de laatste kolom ziet. Je merkt
+nauwelijks hoe breed je tabel is.
+
+Papier heeft een rand. Alles wat niet past, schuift naar een volgende pagina. Het
+klassieke resultaat: vier pagina’s met de tabel, en een vijfde met één eenzame kolom
+*Bedrag* erop. Niemand kan daar iets mee.
+
+## 2. Kijk eerst, druk dan af
+
+Druk op **Ctrl+P**. Je krijgt het afdrukvoorbeeld. Kijk onderaan: daar staat
+*1 van 4*. Dat getal is je controle — vóór je papier verbruikt.
+
+Ben je één keer in dat voorbeeld geweest, dan verschijnen er **stippellijnen** in je blad.
+Dat zijn de paginagrenzen. Handig: nu zie je meteen welke kolom er net naast valt.
+
+## 3. Staand of liggend
+
+| Je tabel | Afdrukstand |
+|---|---|
+| Meer rijen dan kolommen, smal | **Staand** (portret) |
+| Veel kolommen naast elkaar, breed | **Liggend** (landschap) |
+
+Je vindt het bij **Pagina-indeling › Afdrukstand**.
+
+Een lijst met zeven kolommen — leveringsnummer, klant, artikel, datum, aantal, prijs,
+bedrag — is breed. Die zet je liggend. Dat is de eerste ingreep, nog vóór je aan marges
+of schalen denkt.
+
+## 4. Marges
+
+De marge is de witte rand rond je tabel. **Pagina-indeling › Marges** geeft je drie
+kant-en-klare keuzes:
+
+| Keuze | Links en rechts | Boven en onder |
+|---|---|---|
+| Normaal | 1,8 cm | 1,9 cm |
+| Breed | 2,5 cm | 2,5 cm |
+| **Smal** | **0,64 cm** | 1,9 cm |
+
+Let op wat *Smal* wél en niet doet: het maakt de **zijkanten** veel smaller, maar laat
+boven en onder ongemoeid. Dat is ook logisch — je wint plaats in de breedte, en dat is
+net waar een brede tabel plaats tekortkomt.
+
+Met liggend én smalle marges win je samen al snel drie kolommen.
+
+## Veelgemaakte fouten
+
+- **Afdrukken zonder voorbeeld.** Twintig bladen papier later weet je het ook.
+- **Kolommen versmallen tot alles past.** Dan past het, maar leest niemand het nog.
+  Zet het blad liggend; daarover gaat ook de volgende les.
+- **Marges op 0 cm zetten.** Geen enkele printer drukt tot tegen de rand; je verliest
+  gewoon de buitenste tekens.
+$md$,
+  'f3-stand-en-marges', true
+where not exists (select 1 from lessen where oefening_id = 'f3-stand-en-marges');
+
+insert into lessen (focus, volgnummer, titel, samenvatting, inhoud, oefening_id, gepubliceerd)
+select 3, 2,
+  'Passend maken: laten krimpen zonder te knoeien',
+  'Alle kolommen op één pagina breed, met de juiste instelling in plaats van met trucjes.',
+$md$
+## Wat je na deze les kunt
+
+- Een tabel laten krimpen tot ze in de breedte past
+- Het verschil uitleggen tussen "één pagina breed" en "op één pagina"
+- Zien waarom kolommen verbergen geen oplossing is
+
+## 1. Liggend volstaat niet altijd
+
+Je tabel staat liggend, de marges zijn smal, en tóch valt de laatste kolom ernaast. Dan
+is er maar één nette oplossing: Excel de tabel laten **schalen**, dus alles evenredig wat
+kleiner afdrukken.
+
+## 2. Aanpassen aan
+
+Op het tabblad **Pagina-indeling** staat een groepje met drie vakjes:
+
+```
+Breedte:  1 pagina
+Hoogte:   Automatisch
+Schaal:   (wordt vanzelf ingevuld)
+```
+
+Zet **Breedte** op *1 pagina*. Excel rekent zelf uit hoeveel procent er nodig is — bv. 78 %
+— en vult dat in bij Schaal.
+
+**Laat Hoogte op Automatisch staan.** Zet je die ook op 1 pagina, dan moet Excel 75 rijen
+én 7 kolommen op één blad persen. Het resultaat is leesbaar met een vergrootglas.
+
+> Kort samengevat: **één pagina breed, zoveel pagina’s hoog als nodig.** Een lange lijst
+> mag gerust over vijf bladen lopen, zolang elke rij volledig op één blad staat.
+
+## 3. Schalen of "Aanpassen aan"?
+
+Je kunt ook met de hand een percentage invullen bij *Vergroten/verkleinen*. Dat werkt,
+maar je moet het zelf blijven bijstellen. Komen er rijen of kolommen bij, dan klopt je
+percentage niet meer.
+
+*Aanpassen aan* is slimmer: die instelling blijft kloppen, ook als de lijst groeit.
+
+## 4. Wat je níét doet
+
+| Trucje | Waarom niet |
+|---|---|
+| Kolommen verbergen | De gegevens zijn weg uit je rapport. Wie het leest, weet dat niet. |
+| Lettertype op 6 punten | Het past, maar het is onleesbaar. |
+| Kolommen supersmal maken | Getallen worden `####`, of tekst valt af. |
+
+Schalen doet hetzelfde als een kleiner lettertype, maar **evenredig en over alles tegelijk** —
+en het blijft op het scherm gewoon normaal groot.
+
+## 5. Pagina-einde-voorbeeld
+
+Wil je precies zien waar Excel de pagina’s legt, kies dan **Beeld › Pagina-einde-voorbeeld**.
+Je ziet je blad met blauwe lijnen erdoor, en je kunt die lijnen **verslepen**. Excel past
+de schaal dan zelf aan.
+
+## Veelgemaakte fouten
+
+- **Hoogte ook op 1 pagina zetten.** Dan wordt het onleesbaar klein.
+- **Een percentage invullen en het vergeten bij te werken** als er rijen bijkomen.
+- **Vergeten liggend te zetten** en dan klagen dat de schaal zo klein wordt.
+$md$,
+  'f3-passend-maken', true
+where not exists (select 1 from lessen where oefening_id = 'f3-passend-maken');
+
+insert into lessen (focus, volgnummer, titel, samenvatting, inhoud, oefening_id, gepubliceerd)
+select 3, 3,
+  'Kop- en voettekst: elke pagina herkenbaar',
+  'Een titel bovenaan en een paginanummer onderaan, automatisch op elke afgedrukte pagina.',
+$md$
+## Wat je na deze les kunt
+
+- Een kop- en voettekst instellen
+- Een paginanummer laten meelopen
+- De codes herkennen die Excel daarvoor gebruikt
+
+## 1. Waarom
+
+Een rapport van tien pagina’s valt op de grond. Als er niets op staat, is de volgorde
+weg. Staat er op elke pagina *Leveringen september — Pagina 4 van 10*, dan is het in tien
+seconden weer gesorteerd.
+
+Daarom staat op zo goed als elk zakelijk rapport een koptekst en een paginanummer. Dat is
+geen opsmuk; dat is bruikbaarheid.
+
+## 2. Kop- en voettekst staan niet in cellen
+
+Dit is het punt waar het bij de meesten misloopt. Een koptekst is **geen rij 1** van je
+blad. Het is een aparte laag die alleen bij het afdrukken bestaat.
+
+Zet je je titel gewoon in cel A1, dan staat hij op pagina 1 — en nergens anders.
+
+Je stelt het in via **Invoegen › Kop- en voettekst**. Excel schakelt dan over naar de
+weergave *Pagina-indeling*, waar je bovenaan en onderaan drie invulvakken ziet.
+
+## 3. Drie vakken, boven en onder
+
+| Vak | Wat er gewoonlijk in staat |
+|---|---|
+| Links | de firmanaam, of de datum |
+| Midden | de titel van het rapport |
+| Rechts | het paginanummer |
+
+Je mag zelf kiezen, maar houd het consequent door heel het rapport.
+
+## 4. De codes
+
+Typ je gewoon `Pagina 1`, dan staat er op élke pagina "Pagina 1". Je hebt een code nodig
+die meetelt. Excel heeft daar knoppen voor, maar in het vak zie je de code verschijnen:
+
+| Code | Wat het wordt |
+|---|---|
+| `&P` | het paginanummer |
+| `&N` | het totaal aantal pagina’s |
+| `&D` | de datum van afdrukken |
+| `&F` | de bestandsnaam |
+| `&A` | de naam van het werkblad |
+
+Voor de oefening typ je in het rechtervak van de voettekst:
+
+```
+Pagina &P van &N
+```
+
+Op papier wordt dat *Pagina 4 van 10*.
+
+## Veelgemaakte fouten
+
+- **De titel in cel A1 zetten** en denken dat dat een koptekst is.
+- **"Pagina 1" letterlijk typen** in plaats van `&P` te gebruiken.
+- **Een koptekst instellen op het verkeerde werkblad.** Elk blad heeft zijn eigen kop- en
+  voettekst.
+$md$,
+  'f3-kop-en-voettekst', true
+where not exists (select 1 from lessen where oefening_id = 'f3-kop-en-voettekst');
+
+insert into lessen (focus, volgnummer, titel, samenvatting, inhoud, oefening_id, gepubliceerd)
+select 3, 4,
+  'Titelrijen herhalen op elke pagina',
+  'De koprij laten terugkomen op pagina twee, drie en vier — en waarom dat iets anders is dan beeld vastzetten.',
+$md$
+## Wat je na deze les kunt
+
+- Een koprij op elke afgedrukte pagina laten herhalen
+- Het verschil uitleggen tussen beeld vastzetten en afdruktitels
+
+## 1. Het probleem
+
+Pagina 1 van je afdruk is perfect: bovenaan staat *Leveringsnummer, Klant, Artikel,
+Datum, Aantal, Eenheidsprijs, Bedrag*.
+
+Pagina 3 is een blad vol getallen zonder één woord uitleg. Welke kolom was het aantal,
+welke de prijs? Niemand die het nog weet.
+
+## 2. Vastzetten is niet hetzelfde als herhalen
+
+In Focus 1 heb je **beeld vastzetten** geleerd: de koprij blijft staan terwijl je scrolt.
+Dat is prettig, maar het is een instelling **voor het scherm**. Op papier verandert er
+niets van.
+
+| Wat je wilt | Waar je het instelt |
+|---|---|
+| Koprij blijft staan tijdens het scrollen | Beeld › Blokkeren (Focus 1) |
+| Koprij komt terug op elke afgedrukte pagina | Pagina-indeling › **Afdruktitels** |
+
+Twee verschillende instellingen, voor twee verschillende doelen. Je hebt ze allebei nodig.
+
+## 3. Afdruktitels instellen
+
+Ga naar **Pagina-indeling › Afdruktitels**. Er opent een venster met twee velden:
+
+```
+Rijen om boven aan elke pagina te herhalen:    $3:$3
+Kolommen om links op elke pagina te herhalen:  (leeg laten)
+```
+
+Klik in het veld en klik dan op **rijkop 3** in je blad. Excel vult zelf `$3:$3` in.
+
+De dollartekens zijn hier geen keuze: afdruktitels worden altijd absoluut genoteerd. Dat
+is hetzelfde principe als bij een absolute celverwijzing uit Focus 2.
+
+> Staat je koptekst over twee rijen? Dan herhaal je `$2:$3`. Je mag een bereik van rijen
+> opgeven, zolang het aaneensluitende rijen zijn.
+
+## 4. Kolommen herhalen
+
+Het tweede veld doet hetzelfde in de breedte. Bij een tabel die over meerdere pagina’s
+naar rechts loopt, herhaal je zo de kolom met de namen. Bij de oefening laat je dat veld
+leeg: daar zorg je er met *Aanpassen aan* voor dat alles op één pagina breed staat.
+
+## Veelgemaakte fouten
+
+- **Beeld vastzetten en denken dat het geregeld is.** Dat geldt alleen voor het scherm.
+- **Rij 1 herhalen in plaats van rij 3.** In deze bestanden staat de titel op rij 1 en de
+  eigenlijke koprij op rij 3. Kijk dus even welke rij de kolomnamen bevat.
+- **De rijnummers intypen als `3:3`** zonder dollartekens. Klik liever gewoon op de rijkop;
+  dan vult Excel het correct in.
+$md$,
+  'f3-titelrijen', true
+where not exists (select 1 from lessen where oefening_id = 'f3-titelrijen');
+
+insert into lessen (focus, volgnummer, titel, samenvatting, inhoud, oefening_id, gepubliceerd)
+select 3, 5,
+  'Een printklaar rapport: de volgorde van werken',
+  'Alles van dit blok samen, in de volgorde die het minste werk kost.',
+$md$
+## Wat je na deze les kunt
+
+- Een lijst volledig klaarmaken om af te drukken
+- In de juiste volgorde werken, zodat je niets twee keer doet
+
+## 1. De volgorde
+
+Je kunt deze instellingen in willekeurige volgorde aanzetten, maar dan stel je de schaal
+drie keer opnieuw in. Werk zo:
+
+1. **Afdrukstand** — liggend bij een brede tabel
+2. **Marges** — Smal
+3. **Aanpassen aan** — Breedte 1 pagina, Hoogte automatisch
+4. **Afdruktitels** — rij 3 boven aan elke pagina
+5. **Kop- en voettekst** — titel in het midden, `Pagina &P van &N` rechts
+6. **Controleren** — Ctrl+P
+
+Stap 1 en 2 maken plaats. Pas daarna laat je Excel de schaal berekenen — anders rekent
+hij op de oude, te smalle pagina.
+
+## 2. Afdrukbereik
+
+Wil je maar een deel van het blad afdrukken, selecteer dat dan en kies
+**Pagina-indeling › Afdrukbereik › Afdrukbereik instellen**.
+
+Vanaf dan drukt Excel *alleen* dat bereik af. Handig, maar ook een klassieke valkuil:
+komen er later rijen bij, dan vallen die buiten het afdrukbereik en verschijnen ze niet
+op papier. Zonder waarschuwing.
+
+## 3. Rasterlijnen en koppen
+
+Standaard drukt Excel de grijze rasterlijnen **niet** af. Bij een tabel met echte randen
+is dat prima. Bij een ruwe lijst zonder opmaak is het vaak onleesbaar.
+
+Bij **Pagina-indeling › Rasterlijnen › Afdrukken** zet je ze aan. Daarnaast staat
+*Koppen*, dat de rij- en kolomletters meedrukt — dat doe je alleen bij een controlelijst,
+nooit bij een rapport dat de deur uit gaat.
+
+## 4. De laatste controle
+
+Ga naar het afdrukvoorbeeld en kijk vier dingen na:
+
+- Staat er **1 van N** onderaan, en is N een redelijk getal?
+- Staat op **pagina 2** de koprij?
+- Staat het **paginanummer** onderaan?
+- Valt er **geen enkele kolom** naast de rand?
+
+Pas als die vier kloppen, is je rapport klaar om door te geven.
+
+## Veelgemaakte fouten
+
+- **De schaal instellen vóór je liggend zet.** Dan mag je opnieuw beginnen.
+- **Een afdrukbereik laten staan** nadat de lijst gegroeid is.
+- **Alleen pagina 1 controleren.** Net op pagina 2 zie je of je titelrijen werken.
+$md$,
+  'f3-printklaar-rapport', true
+where not exists (select 1 from lessen where oefening_id = 'f3-printklaar-rapport');
+
+
+-- ---------------------------------------------------------------------
+--  FOCUS 4 · Grafieken
+-- ---------------------------------------------------------------------
+insert into lessen (focus, volgnummer, titel, samenvatting, inhoud, oefening_id, gepubliceerd)
+select 4, 1,
+  'Van tabel naar grafiek',
+  'Je selectie bepaalt alles. Wat je aanduidt vóór je op Invoegen klikt, is wat er in de grafiek komt.',
+$md$
+## Wat je na deze les kunt
+
+- Van een tabel een grafiek maken
+- De juiste cellen selecteren, inclusief de koptekst
+- Een grafiek een titel geven
+
+> Deze oefening maak je in **Excel zelf**. Grafieken zitten niet in het rekenblad hier in
+> de browser — en op stage maak je ze toch in het echte programma.
+
+## 1. Waarom een grafiek
+
+Twaalf getallen in een kolom zijn correct, maar je moet ze lezen en vergelijken. Diezelfde
+twaalf getallen als staafjes zie je in één oogopslag: welke maand er uitsprong, waar de
+dip zat.
+
+De zaakvoerder leest je tabel niet. Je grafiek wel.
+
+## 2. Je selectie bepaalt de grafiek
+
+Dit is het hele geheim. Excel maakt een grafiek van **wat je geselecteerd hebt**, niets
+meer en niets minder. Selecteer je verkeerd, dan helpt achteraf bijsturen weinig — opnieuw
+beginnen gaat sneller.
+
+Voor een tabel met maanden in kolom A en omzet in kolom B selecteer je:
+
+```
+A3:B9
+```
+
+Dus: de **koprij** (rij 3) plus de zes maanden met hun omzet.
+
+## 3. Neem de koptekst mee
+
+Waarom rij 3 erbij? Omdat Excel daaruit de **naam van de reeks** haalt. Selecteer je alleen
+A4:B9, dan heet je reeks "Reeks1". Met de koptekst erbij heet ze *Omzet*, en dat is wat er
+in de legende komt te staan.
+
+Het kost je één rij extra in je selectie en het scheelt achteraf handwerk.
+
+## 4. Invoegen
+
+Met je selectie actief: **Invoegen › Kolom** (het icoontje met de staafjes). Kies het
+eerste, gewone type: *Gegroepeerde kolom*.
+
+Excel zet de grafiek als een kader over je blad. Je kunt hem verslepen en aan de hoeken
+groter maken.
+
+## 5. Een titel geven
+
+Boven de grafiek staat *Grafiektitel*. Klik erop, selecteer de tekst en typ de jouwe —
+voor deze oefening: **Omzet per maand**.
+
+Een grafiek zonder titel is onbruikbaar zodra ze uit haar context gehaald wordt, en dat
+gebeurt altijd: ze wordt gekopieerd in een mail, een verslag, een presentatie.
+
+## 6. De grafiek blijft gekoppeld
+
+Verander je een getal in B5, dan beweegt de staaf mee. Je hoeft niets opnieuw te maken.
+Dat is hetzelfde principe als bij een formule: verwijzen in plaats van overtypen.
+
+## Veelgemaakte fouten
+
+- **De koprij niet meeselecteren**, waardoor je reeks "Reeks1" heet.
+- **De titelcel in A1 meeselecteren.** Die hoort niet bij je gegevens en maakt er een
+  rommeltje van. Begin je selectie bij de koprij.
+- **De grafiektitel laten staan op "Grafiektitel".**
+$md$,
+  'f4-staafdiagram', true
+where not exists (select 1 from lessen where oefening_id = 'f4-staafdiagram');
+
+insert into lessen (focus, volgnummer, titel, samenvatting, inhoud, oefening_id, gepubliceerd)
+select 4, 2,
+  'Het juiste type kiezen',
+  'Kolom, lijn of cirkel: de vraag die je stelt bepaalt het type, niet je smaak.',
+$md$
+## Wat je na deze les kunt
+
+- Het grafiektype kiezen dat bij je vraag past
+- Uitleggen waarom een lijn een verloop toont en een staaf niet
+
+## 1. De vraag bepaalt het type
+
+| Je vraag | Type |
+|---|---|
+| Hoeveel per maand, per filiaal, per artikel? | **Kolom** of staaf |
+| Gaat het de goede kant op? Hoe evolueert het? | **Lijn** |
+| Welk aandeel heeft elk deel van het geheel? | **Cirkel** |
+
+Meer keuzes zijn er in de praktijk zelden nodig. De rest van het menu — radar, trechter,
+oppervlakte — gebruik je pas als je een goede reden hebt.
+
+## 2. Kolom: hoeveelheden vergelijken
+
+Staven staan naast elkaar en zijn even breed. Je oog vergelijkt automatisch de
+**hoogtes**. Daarom is een kolomdiagram het beste antwoord op "welke maand was de beste".
+
+## 3. Lijn: een verloop tonen
+
+Een lijn verbindt de punten. Dat verbinden is precies wat je wilt zeggen: *dit gaat
+over in dat*. Je ziet de richting — stijgend, dalend, schommelend.
+
+Gebruik een lijn dus zodra de horizontale as **tijd** is: maanden, kwartalen, jaren.
+
+> Hetzelfde cijfermateriaal, een andere boodschap. Een staafdiagram van de omzet per maand
+> zegt *"mei was de beste maand"*. Een lijndiagram van diezelfde cijfers zegt
+> *"de omzet klimt sinds februari"*. Kies het type dat past bij wat je wil vertellen.
+
+## 4. Een lijn hoort niet overal
+
+Zet je filialen — Roeselare, Izegem, Kortrijk, Tielt — op een lijn, dan suggereer je dat
+Izegem "tussen" Roeselare en Kortrijk ligt. Dat betekent niets. Er is geen volgorde en
+geen overgang tussen filialen.
+
+Regel: **alleen een lijn als de as een volgorde heeft.** Tijd heeft dat. Namen niet.
+
+## Veelgemaakte fouten
+
+- **Een lijn gebruiken voor categorieën** zonder natuurlijke volgorde.
+- **Een 3D-type kiezen omdat het mooier lijkt.** Het perspectief vervormt de hoogtes; je
+  leest er minder nauwkeurig op af.
+- **Een type kiezen en de titel vergeten aanpassen** aan wat de grafiek nu toont.
+$md$,
+  'f4-lijndiagram', true
+where not exists (select 1 from lessen where oefening_id = 'f4-lijndiagram');
+
+insert into lessen (focus, volgnummer, titel, samenvatting, inhoud, oefening_id, gepubliceerd)
+select 4, 3,
+  'Cirkeldiagram: delen van één geheel',
+  'Wanneer een cirkel het juiste antwoord is — en wanneer hij liegt.',
+$md$
+## Wat je na deze les kunt
+
+- Een cirkeldiagram maken
+- Beoordelen of een cirkel hier wel op zijn plaats is
+
+## 1. Eén geheel, verdeeld in stukken
+
+Een cirkeldiagram toont **aandelen**. De hele cirkel is 100 %, en elke taartpunt is een
+deel daarvan.
+
+Dat werkt alleen als je cijfers echt samen één geheel vormen. De omzet van je vier
+filialen samen is de totale omzet — dat klopt. Je kunt dus tonen dat Kortrijk een goeie
+derde van alles doet.
+
+## 2. Wanneer een cirkel niet mag
+
+| Situatie | Waarom niet |
+|---|---|
+| De delen vormen geen geheel | 100 % betekent dan niets |
+| Meer dan ongeveer zes stukken | De punten worden te dun om te lezen |
+| Negatieve getallen | Een negatieve taartpunt bestaat niet |
+| Je wil twee periodes vergelijken | Twee cirkels naast elkaar leest niemand |
+
+In elk van die gevallen neem je een kolomdiagram.
+
+## 3. Maken
+
+Selecteer de namen én hun waarden — met de koprij erbij, net als bij een staafdiagram —
+en kies **Invoegen › Cirkel**.
+
+Geef hem een titel die zegt wat het geheel ís: *Aandeel per filiaal*. Niet gewoon
+"Omzet": bij een cirkel gaat het om de verdeling, niet om het bedrag.
+
+## 4. Percentages erbij
+
+Een cirkel zonder cijfers laat je schatten. Klik met de rechtermuisknop op de taart en
+kies **Gegevenslabels toevoegen**. Via *Gegevenslabels opmaken* kun je kiezen voor
+**Percentage** in plaats van de absolute waarde.
+
+Dat is meestal de betere keuze: bij een cirkel wil de lezer de verhouding weten.
+
+## Veelgemaakte fouten
+
+- **Een cirkel gebruiken voor cijfers die geen geheel vormen** — bv. de omzet van drie
+  willekeurige artikelen uit een catalogus van duizend.
+- **Twaalf maanden in een cirkel.** Dat is een kolomdiagram, of een lijn.
+- **Het totaal meeselecteren.** Staat er onderaan een rij *Totaal*, laat die dan buiten je
+  selectie — anders is de helft van je cirkel het totaal zelf.
+$md$,
+  'f4-cirkeldiagram', true
+where not exists (select 1 from lessen where oefening_id = 'f4-cirkeldiagram');
+
+insert into lessen (focus, volgnummer, titel, samenvatting, inhoud, oefening_id, gepubliceerd)
+select 4, 4,
+  'Een grafiek afwerken',
+  'Alles erop zetten wat een buitenstaander nodig heeft om ze te begrijpen zonder uitleg.',
+$md$
+## Wat je na deze les kunt
+
+- De onderdelen van een grafiek benoemen en aan- of uitzetten
+- De klassieke valkuil herkennen waarbij je categorieën een tweede reeks worden
+
+## 1. De test
+
+Kopieer je grafiek in gedachten naar een mail aan iemand die je bestand nooit gezien
+heeft. Begrijpt die persoon ze? Zo niet, dan ontbreekt er iets.
+
+Meestal is dat de titel, en soms de eenheid.
+
+## 2. De onderdelen
+
+| Onderdeel | Wanneer nodig |
+|---|---|
+| **Grafiektitel** | altijd |
+| **Legende** | zodra er meer dan één reeks is |
+| **Astitels** | als de eenheid niet vanzelf spreekt (euro, stuks, %) |
+| **Gegevenslabels** | bij weinig punten, of bij een cirkel |
+| **Rasterlijnen** | om hoogtes te kunnen aflezen; laat ze licht |
+
+Je zet ze aan met de **+** rechts naast de geselecteerde grafiek: *Grafiekelementen*.
+
+Bij één reeks zet je de legende juist **uit**. Die zegt dan alleen "Omzet", wat de titel
+al vertelt, en hij neemt plaats in.
+
+## 3. De valkuil: je maanden worden een tweede reeks
+
+Dit overkomt iedereen een keer. Je maakt een grafiek en ziet twee reeksen staan, terwijl
+je er maar één verwachtte — en op de horizontale as staat 1, 2, 3, 4, 5, 6 in plaats van
+de maanden.
+
+Dat gebeurt als Excel je eerste kolom voor **cijfers** aanziet in plaats van voor labels.
+Typisch bij jaartallen of bij artikelnummers.
+
+Zo los je het op:
+
+1. Klik de grafiek aan
+2. **Grafiekontwerp › Gegevens selecteren**
+3. Rechts staat *Horizontale aslabels*: klik **Bewerken** en selecteer je maandenkolom
+4. Links staat je reeksenlijst: verwijder daar de reeks die eigenlijk je labels zijn
+
+## 4. Wat de grafiek hier moet worden
+
+Voor deze oefening: een kolomdiagram met de zes maanden onder de staven, één reeks omzet,
+en de titel **Omzet eerste halfjaar 2026**.
+
+## Veelgemaakte fouten
+
+- **De standaardtitel laten staan.**
+- **Een legende laten staan bij één reeks.**
+- **De grafiek zo klein maken** dat de labels schuin gedraaid worden of wegvallen.
+$md$,
+  'f4-grafiek-opmaken', true
+where not exists (select 1 from lessen where oefening_id = 'f4-grafiek-opmaken');
+
+insert into lessen (focus, volgnummer, titel, samenvatting, inhoud, oefening_id, gepubliceerd)
+select 4, 5,
+  'Twee reeksen vergelijken',
+  'Omzet en kosten naast elkaar in één grafiek, zodat je ziet waar de marge krimpt.',
+$md$
+## Wat je na deze les kunt
+
+- Twee gegevensreeksen in één grafiek zetten
+- Een reeks toevoegen of verwijderen zonder opnieuw te beginnen
+- Zien wanneer een tweede as nodig is
+
+## 1. Waarom twee reeksen
+
+Een omzet van 27 960 euro zegt op zich niets. Staan de kosten van diezelfde maand er
+naast, dan zie je wat overblijft. En zet je dat voor zes maanden naast elkaar, dan zie je
+of de marge groeit of krimpt.
+
+Dat is het hele nut van een tweede reeks: **vergelijken**.
+
+## 2. Gewoon meer selecteren
+
+Je hoeft niets nieuws te leren. Waar je vorige keer twee kolommen selecteerde, selecteer je
+er nu drie:
+
+```
+A3:C9
+```
+
+Maanden, omzet én kosten — met de koprij erbij, want daar komen nu de twee namen in de
+legende vandaan.
+
+Dan **Invoegen › Kolom**. Excel zet per maand twee staafjes naast elkaar.
+
+## 3. De legende wordt noodzakelijk
+
+Bij één reeks zette je de legende uit. Bij twee reeksen **moet** ze erop: anders weet
+niemand welk staafje de omzet is.
+
+Controleer ook dat er *Omzet* en *Kosten* staat, en niet *Reeks1* en *Reeks2*. Staat dat
+laatste er, dan heb je de koprij niet meegenomen.
+
+## 4. Een reeks bijsturen
+
+Vergeten? Je hoeft niet opnieuw te beginnen. Klik de grafiek aan en kies
+**Grafiekontwerp › Gegevens selecteren**. In het linkervak staan je reeksen; met
+*Toevoegen* en *Verwijderen* pas je ze aan.
+
+Daar zit ook **Rij/kolom omdraaien**. Handig als Excel de maanden als reeksen genomen
+heeft en de omzet en kosten als categorieën — precies andersom dan je wilde.
+
+## 5. Wanneer een tweede as
+
+Liggen twee reeksen heel ver uit elkaar — omzet in tienduizenden, aantal orders in
+tientallen — dan is de kleine reeks een plat streepje onderaan.
+
+Dan geef je die tweede reeks een **secundaire as**: rechtermuisknop op de reeks,
+*Gegevensreeks opmaken*, en kies *Secundaire as*.
+
+Wees er voorzichtig mee: twee assen betekent twee schalen, en dat leest niet iedereen
+goed. Voor omzet tegenover kosten — allebei in euro, allebei dezelfde grootteorde —
+heb je het niet nodig.
+
+## Veelgemaakte fouten
+
+- **Twee losse grafieken maken** in plaats van één met twee reeksen. Dan kun je niet
+  vergelijken.
+- **De koprij vergeten**, waardoor de legende "Reeks1" en "Reeks2" toont.
+- **Een secundaire as gebruiken waar het niet hoeft**, waardoor het lijkt alsof de kosten
+  even hoog zijn als de omzet.
+$md$,
+  'f4-twee-reeksen', true
+where not exists (select 1 from lessen where oefening_id = 'f4-twee-reeksen');
+
+
+-- ---------------------------------------------------------------------
+--  FOCUS 7 · Draaitabellen
+-- ---------------------------------------------------------------------
+insert into lessen (focus, volgnummer, titel, samenvatting, inhoud, oefening_id, gepubliceerd)
+select 7, 1,
+  'Je eerste draaitabel',
+  'Uit een lijst van achtenveertig lijnen in vijf seconden een samenvatting halen, zonder één formule.',
+$md$
+## Wat je na deze les kunt
+
+- Uitleggen wat een draaitabel doet
+- Beoordelen of je brongegevens geschikt zijn
+- Een eerste draaitabel maken met rijen en waarden
+
+> Deze oefening maak je in **Excel zelf**. Draaitabellen zitten niet in het rekenblad hier
+> in de browser. Ze zijn ook precies het soort werk dat je op stage krijgt: "geef mij eens
+> de omzet per filiaal".
+
+## 1. Wat een draaitabel doet
+
+Je hebt een lijst met 48 verkooplijnen. De vraag: **hoeveel omzet per filiaal?**
+
+Met wat je al kent, kan dat: `SOM.ALS` per filiaal, vier formules, en je moet de
+filiaalnamen zelf opzoeken en overtypen. Komt er een vijfde filiaal bij, dan mag je
+opnieuw.
+
+Een draaitabel doet hetzelfde met slepen. Ze zoekt zelf welke filialen er bestaan, telt
+per filiaal de omzet op, en zet er een totaal onder. Komt er een filiaal bij, dan staat
+het er na één keer vernieuwen gewoon bij.
+
+**Draaien** betekent: dezelfde cijfers langs een andere kant bekijken.
+
+## 2. Eerst: is je lijst geschikt?
+
+Een draaitabel stelt eisen aan de brongegevens. Dit is het deel dat mensen overslaan, en
+het is meteen de reden waarom het bij hen niet lukt.
+
+| Eis | Waarom |
+|---|---|
+| Eén rij met kolomnamen, en maar één | Die namen worden je veldnamen |
+| Geen lege rijen of lege kolommen middenin | Excel denkt dat je lijst daar stopt |
+| Geen samengevoegde cellen | Die hebben geen eenduidige waarde |
+| Eén gegeven per kolom | Datum en klant samen in één cel kun je niet draaien |
+| Eén feit per rij | Elke rij is één verkoop |
+
+In de oefenbestanden staat de titel op rij 1, een lege rij 2, en de kolomnamen op rij 3.
+Klik daarom **in de tabel zelf** (bv. in A4) voor je begint; Excel herkent dan het juiste
+bereik.
+
+## 3. Invoegen
+
+Klik ergens in de tabel en kies **Invoegen › Draaitabel**. Excel toont het herkende
+bereik — controleer dat even — en vraagt waar de tabel moet komen. Kies
+**Nieuw werkblad**. Dat houdt je brongegevens ongemoeid.
+
+## 4. De vier gebieden
+
+Rechts verschijnt het veldenpaneel: bovenaan je kolomnamen, onderaan vier vakken.
+
+| Gebied | Wat je erin sleept | Wat je krijgt |
+|---|---|---|
+| **Rijen** | Filiaal | één rij per filiaal, onder elkaar |
+| **Kolommen** | Maand | één kolom per maand, naast elkaar |
+| **Waarden** | Omzet | de cijfers in het midden |
+| **Filters** | Verkoper | een keuzelijst bovenaan |
+
+Voor deze oefening: sleep **Filiaal** naar *Rijen* en **Omzet** naar *Waarden*. Klaar.
+Je hebt vier regels met de omzet per filiaal en een eindtotaal.
+
+## 5. Vernieuwen
+
+Dit is belangrijk. Een draaitabel is een **momentopname**. Verander je iets in de
+brongegevens, dan past de draaitabel zich **niet** vanzelf aan — anders dan een formule.
+
+Klik met de rechtermuisknop in de draaitabel en kies **Vernieuwen**, of gebruik
+*Draaitabelanalyse › Vernieuwen*.
+
+> Maak er een gewoonte van: vernieuwen vóór je een rapport doorgeeft. Een draaitabel met
+> cijfers van vorige week ziet er precies even betrouwbaar uit als een actuele.
+
+## Veelgemaakte fouten
+
+- **Lege rijen in de brongegevens**, waardoor maar de helft meetelt.
+- **De titelrij meeselecteren** in plaats van in de tabel te klikken.
+- **Vergeten te vernieuwen** nadat de brongegevens veranderd zijn.
+$md$,
+  'f7-eerste-draaitabel', true
+where not exists (select 1 from lessen where oefening_id = 'f7-eerste-draaitabel');
+
+insert into lessen (focus, volgnummer, titel, samenvatting, inhoud, oefening_id, gepubliceerd)
+select 7, 2,
+  'Rijen en kolommen combineren',
+  'Twee kenmerken tegelijk bekijken: per filiaal én per maand, in één kruistabel.',
+$md$
+## Wat je na deze les kunt
+
+- Een kruistabel maken met rijen en kolommen
+- Kiezen welk veld waar hoort
+- De totalen juist lezen
+
+## 1. Twee vragen tegelijk
+
+"Hoeveel omzet per filiaal" is één vraag, en die heb je opgelost. "Hoeveel omzet per
+filiaal, per maand" zijn er eigenlijk twee tegelijk.
+
+Daarvoor bestaat het **kolomgebied**. Zet je Filiaal in de rijen en Maand in de kolommen,
+dan krijg je een rooster:
+
+|  | Januari | Februari | Maart | Eindtotaal |
+|---|---|---|---|---|
+| **Izegem** | 12 400 | 9 800 | 11 200 | 33 400 |
+| **Kortrijk** | 18 900 | 17 300 | 21 050 | 57 250 |
+| **Roeselare** | 15 600 | 16 100 | 14 800 | 46 500 |
+| **Tielt** | 8 200 | 7 900 | 9 400 | 25 500 |
+| **Eindtotaal** | 55 100 | 51 100 | 56 450 | 162 650 |
+
+Elk vakje is een doorsnede: *Kortrijk in maart*. Dat heet een **kruistabel**.
+
+## 2. Wat hoort in de rijen, wat in de kolommen?
+
+Technisch mag het allebei. Praktisch is er een vuistregel:
+
+| Gebied | Neem het veld met… |
+|---|---|
+| **Rijen** | veel verschillende waarden, of lange namen |
+| **Kolommen** | weinig waarden, en korte namen |
+
+Twaalf maanden in de kolommen geeft een tabel die niet op je scherm past. Twaalf maanden
+in de rijen leest prima. Vier filialen met namen als *Roeselare* horen dus in de rijen,
+en drie maanden in de kolommen.
+
+Je kunt het altijd omdraaien: sleep de velden gewoon naar het andere vak. Dat kost geen
+seconde — dat is wat "draaien" betekent.
+
+## 3. De drie soorten totalen
+
+- Rechts de **rijtotalen**: alles van dat filiaal samen
+- Onderaan de **kolomtotalen**: alles van die maand samen
+- In de hoek rechtsonder het **eindtotaal**
+
+Het eindtotaal moet gelijk zijn aan de som van je hele bronkolom. Is dat niet zo, dan
+zitten er lege rijen in je brongegevens of staat er een filter aan.
+
+> Dat is meteen een gratis controle: tel de omzetkolom in je bronblad met `SOM` op en
+> vergelijk met het eindtotaal van de draaitabel. Wijkt het af, dan klopt er iets niet.
+
+## 4. Meer dan één veld per gebied
+
+Je mag twee velden in de rijen zetten, bv. Filiaal en daaronder Productgroep. Dan krijg je
+een genest overzicht: per filiaal uitgesplitst per groep.
+
+Dat is krachtig, maar hou het overzichtelijk. Drie velden in de rijen en twee in de
+kolommen levert een tabel op die niemand meer leest.
+
+## Veelgemaakte fouten
+
+- **Een veld met veel waarden in de kolommen zetten**, waardoor de tabel kilometers breed wordt.
+- **Het eindtotaal niet controleren.**
+- **Denken dat je iets kapotmaakt door te slepen.** Je brongegevens blijven altijd intact;
+  proberen kost niets.
+$md$,
+  'f7-kruistabel', true
+where not exists (select 1 from lessen where oefening_id = 'f7-kruistabel');
+
+insert into lessen (focus, volgnummer, titel, samenvatting, inhoud, oefening_id, gepubliceerd)
+select 7, 3,
+  'Niet altijd optellen: Som, Aantal, Gemiddelde',
+  'Excel kiest zelf een functie, en dat is niet altijd de juiste. Zo verander je ze.',
+$md$
+## Wat je na deze les kunt
+
+- De samenvattingsfunctie van een waardeveld veranderen
+- Uitleggen waarom Excel soms Aantal kiest in plaats van Som
+- Het verschil tussen Aantal en Aantal getallen
+
+## 1. Excel raadt
+
+Sleep je een veld naar *Waarden*, dan kiest Excel zelf wat ermee moet gebeuren:
+
+| Wat je sleept | Wat Excel doet |
+|---|---|
+| Een kolom met getallen (Omzet) | **Som** |
+| Een kolom met tekst (Ordernummer, Klant) | **Aantal** |
+
+Dat is meestal handig. Maar niet altijd — en je ziet het aan de kop van de kolom, waar
+*Som van Omzet* of *Aantal van Ordernummer* staat.
+
+## 2. Als het raden fout is
+
+De vraag "hoeveel orders per productgroep" gaat niet over een bedrag. Je wil **tellen**.
+
+Sleep je dan Ordernummer naar Waarden, dan kiest Excel Aantal — precies goed. Maar
+bevatten je ordernummers alleen cijfers, dan ziet Excel getallen, kiest hij Som, en krijg
+je de optelsom van je ordernummers. Een getal dat nergens op slaat.
+
+## 3. De functie veranderen
+
+Klik op het veld in het vak *Waarden* en kies **Waardeveldinstellingen**. Daar staat de
+lijst:
+
+| Functie | Wat ze doet |
+|---|---|
+| **Som** | telt op |
+| **Aantal** | telt hoeveel rijen er zijn |
+| **Gemiddelde** | het gemiddelde |
+| **Max** / **Min** | de hoogste of laagste waarde |
+
+Kies wat bij je vraag hoort. Voor deze oefening: **Aantal**.
+
+> Het kan ook sneller: rechtermuisknop op een cel in de waardenkolom ›
+> *Waarden samenvatten als* › Aantal.
+
+## 4. Aantal tegenover Aantal getallen
+
+Twee keuzes die op elkaar lijken:
+
+- **Aantal** telt alle gevulde cellen, ook tekst
+- **Aantal getallen** telt alleen cellen met een getal erin
+
+Dat is exact hetzelfde onderscheid als tussen `AANTALARG` en `AANTAL`, dat je in Focus 2
+gezien hebt. Staat er in je kolom hier en daar "n.v.t.", dan geven de twee een ander
+resultaat.
+
+## 5. Hernoem de kop
+
+*Aantal van Ordernummer* is lelijk in een rapport. Klik de kop aan en typ er
+**Aantal orders** over.
+
+Eén voorwaarde: de nieuwe naam mag niet exact gelijk zijn aan een bestaande veldnaam. Zet
+er desnoods een spatie achter, of gebruik een iets andere formulering.
+
+## Veelgemaakte fouten
+
+- **Ordernummers optellen** omdat Excel Som koos.
+- **Denken dat een fout getal aan de brongegevens ligt**, terwijl de functie fout staat.
+  Kijk altijd eerst naar de kop: staat er Som of Aantal?
+- **De kop laten staan als "Som van Omzet"** in een rapport dat de deur uit gaat.
+$md$,
+  'f7-samenvattingsfunctie', true
+where not exists (select 1 from lessen where oefening_id = 'f7-samenvattingsfunctie');
+
+insert into lessen (focus, volgnummer, titel, samenvatting, inhoud, oefening_id, gepubliceerd)
+select 7, 4,
+  'Filteren in een draaitabel',
+  'Een deel van de cijfers bekijken zonder de brongegevens aan te raken.',
+$md$
+## Wat je na deze les kunt
+
+- Een veld in het filtergebied zetten
+- Een slicer toevoegen
+- Uitleggen waarom filteren je brongegevens niet verandert
+
+## 1. Filteren verandert niets aan je gegevens
+
+Een filter is een **bril**, geen ingreep. Je kijkt naar een deel van de cijfers; alles
+blijft staan waar het stond. Zet je het filter weer op *Alles*, dan is je volledige
+overzicht terug.
+
+Dat is het grote verschil met rijen verwijderen "omdat ze nu niet nodig zijn". Filteren is
+altijd omkeerbaar.
+
+## 2. Het filtergebied
+
+Sleep een veld naar het vak **Filters** — bv. Verkoper. Boven je draaitabel verschijnt
+dan een keuzelijst:
+
+```
+Verkoper    (Alle)  ▾
+```
+
+Kies je *An Peeters*, dan toont je hele draaitabel alleen haar verkopen. Rijen, kolommen,
+totalen — alles rekent mee.
+
+Zo bouw je één tabel die de verkoopleider voor elke verkoper kan gebruiken, in plaats van
+drie aparte tabellen.
+
+> Vink **Meerdere items selecteren** aan om er twee of drie tegelijk te kiezen.
+
+## 3. Slicers: hetzelfde, maar zichtbaar
+
+Een nadeel van het filtergebied: aan de keuzelijst zie je niet meteen of er gefilterd is.
+Iemand die je bestand doorkrijgt, leest cijfers van één verkoper zonder het door te hebben.
+
+Daarom bestaan **slicers**: knoppenbalken naast je tabel, waarop je in één oogopslag ziet
+wat aan- en uitstaat.
+
+Je voegt ze toe via **Draaitabelanalyse › Slicer invoegen**, en dan vink je het veld aan.
+Klikken op een knop filtert; nog eens klikken zet het weer af.
+
+Voor deze oefening volstaat het filtergebied. Ken de slicer als het nettere alternatief
+voor een rapport dat je doorgeeft.
+
+## 4. Filter of rijgebied?
+
+| Je wil | Waar |
+|---|---|
+| Per verkoper apart kunnen kijken, één tegelijk | **Filters** |
+| Alle verkopers naast elkaar zien en vergelijken | **Rijen** |
+
+Filteren is voor *inzoomen*. Vergelijken doe je door het veld gewoon in de rijen of
+kolommen te zetten.
+
+## Veelgemaakte fouten
+
+- **Een filter laten staan** en het rapport zo doorgeven. De cijfers kloppen dan niet met
+  het totaal.
+- **In de brongegevens rijen wissen** om te "filteren". Dan zijn ze echt weg.
+- **Het filterveld in de rijen zetten** en je dan afvragen waarom je alle verkopers ziet.
+$md$,
+  'f7-filteren', true
+where not exists (select 1 from lessen where oefening_id = 'f7-filteren');
+
+insert into lessen (focus, volgnummer, titel, samenvatting, inhoud, oefening_id, gepubliceerd)
+select 7, 5,
+  'Van draaitabel naar rapport',
+  'De eindproef: samenvatten, in beeld brengen en printklaar maken — alles van deze cursus samen.',
+$md$
+## Wat je na deze les kunt
+
+- Een draaigrafiek maken bij een draaitabel
+- Een draaitabel netjes opmaken
+- Een draaitabel printklaar afwerken
+
+## 1. De draaigrafiek
+
+Klik in je draaitabel en kies **Draaitabelanalyse › Draaigrafiek**. Je krijgt dezelfde
+keuze aan types als bij een gewone grafiek.
+
+Het verschil: een draaigrafiek is **gekoppeld aan de draaitabel**. Filter je de tabel, dan
+verandert de grafiek mee. Sleep je een veld naar een ander gebied, dan volgt de grafiek.
+
+Voor deze oefening maak je er een van de omzet per filiaal, met de titel
+**Omzet per filiaal**. De titel zet je er net zo op als bij een gewone grafiek: erop
+klikken en typen.
+
+> Je mag ook een gewone grafiek maken van het bereik van de draaitabel. Dat mag voor deze
+> opdracht, maar een draaigrafiek blijft netter: die blijft kloppen als de tabel verandert.
+
+## 2. De tabel leesbaar maken
+
+Een draaitabel komt er functioneel uit, niet mooi. Op het tabblad **Ontwerp** vind je:
+
+| Wat | Waar |
+|---|---|
+| Kleuren en randen | Draaitabelstijlen |
+| Compacte, overzichts- of tabelvorm | Rapportindeling |
+| Totalen aan- of uitzetten | Subtotalen / Eindtotalen |
+
+**Rapportindeling › Tabelvorm weergeven** zet elk veld in een eigen kolom met een echte
+kop erboven. Dat leest veel beter dan de standaard compacte vorm, zeker als je het
+doorgeeft aan iemand anders.
+
+Staan je bedragen als kale getallen? Rechtermuisknop › *Getalnotatie* — niet via de
+gewone werkbalk, want die opmaak verdwijnt bij het vernieuwen.
+
+## 3. Printklaar maken
+
+Nu komt Focus 3 terug. Een draaitabel drukt precies zo af als elk ander blad:
+
+1. Liggend
+2. Smalle marges
+3. **Aanpassen aan › Breedte 1 pagina**
+4. Kop- en voettekst met `Pagina &P van &N`
+
+Loopt je draaitabel over meerdere pagina’s, dan is er nog een extra: bij
+**Draaitabelanalyse › Opties › Afdrukken** staat *Afdruktitels instellen*. Die zorgt dat
+de veldkoppen van de draaitabel op elke pagina terugkomen — het equivalent van de
+afdruktitels die je in Focus 3 geleerd hebt.
+
+## 4. Vernieuwen, dan pas doorgeven
+
+De laatste stap, elke keer opnieuw: **vernieuwen**. Een draaitabel toont de cijfers van het
+moment waarop ze gemaakt of laatst vernieuwd is.
+
+De volgorde voor een rapport dat de deur uit gaat:
+
+1. Brongegevens nakijken
+2. Draaitabel vernieuwen
+3. Eindtotaal vergelijken met de `SOM` van je bronkolom
+4. Grafiek controleren
+5. Afdrukvoorbeeld bekijken
+
+## Veelgemaakte fouten
+
+- **Een niet-vernieuwde draaitabel doorgeven.**
+- **De grafiek los van de tabel maken** en hem daarna niet meer bijwerken.
+- **Opmaak via de gewone werkbalk** in plaats van via de getalnotatie van het veld —
+  weg na het eerste vernieuwen.
+$md$,
+  'f7-draairapport', true
+where not exists (select 1 from lessen where oefening_id = 'f7-draairapport');
