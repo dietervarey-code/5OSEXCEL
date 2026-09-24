@@ -184,9 +184,21 @@ per bestand. Verwijder je het item, dan verdwijnt ook het bestand uit de opslag.
 
 ### De lessen inladen
 
-`supabase/lessen.sql` bevat de 25 lessen die bij de 25 oefeningen horen. Voer het uit
-in de SQL Editor. Het mag meermaals draaien: een les die al bij een oefening hoort, komt
-er niet nog eens bij. Daarna bewerk je ze gewoon in het portaal.
+Er zijn **twee** bestanden, allebei uit te voeren in de SQL Editor:
+
+| Bestand | Wat erin zit |
+|---|---|
+| `supabase/lessen.sql` | De 40 lessen die bij de 40 oefeningen horen — één per oefening. |
+| `supabase/lessen-extra.sql` | 9 losse theorielessen zonder eigen oefening: woordenlijst, foutmeldingen, datums, gegevensvalidatie, en zo meer. |
+
+Voer ze in die volgorde uit. Allebei mogen ze meermaals draaien: een les die er al staat,
+komt er niet nog eens bij. Daarna bewerk je ze gewoon in het portaal.
+
+> De twee bestanden gebruiken een **andere** controle om dubbels te vermijden.
+> `lessen.sql` kijkt naar `oefening_id`; `lessen-extra.sql` kan dat niet, want die lessen
+> horen bij geen enkele oefening — en in SQL is `null = null` nooit waar, dus zo’n controle
+> zou bij elke run opnieuw invoegen. Die kijkt daarom naar de **titel**. Hernoem je een
+> les in het portaal, dan komt de oorspronkelijke versie er bij een volgende run weer bij.
 
 ---
 

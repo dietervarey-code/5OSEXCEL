@@ -16,7 +16,8 @@ afdrukken doen de leerlingen in echt Excel en dienen ze als `.xlsx` in.
   25 in het rekenblad in de browser, 15 in echt Excel (grafieken, draaitabellen, afdrukken)
 - Nagekeken wordt niet alleen de uitkomst, maar ook de gebruikte functie, de getalnotatie,
   de celopmaak, de sorteervolgorde en of de titels vastgezet zijn
-- 40 lessen met theorie, voorbeelden en tabellen — één per oefening
+- 49 lessen met theorie, voorbeelden en tabellen: één bij elke oefening, plus negen
+  losse over woordenschat, foutmeldingen, datums, validatie en opmaak
 - Filmpjes en bijlagen bij een les — te beheren in het portaal
 - Accountbeheer in het portaal zelf: namen plakken, wachtwoorden krijgen, opnieuw instellen
 - Aanmelden met gebruikersnaam en wachtwoord uit een tabel die de leerkracht beheert
@@ -108,7 +109,8 @@ lib/
   opslag.ts                 alle databanktoegang  (server-only)
 supabase/
   schema.sql                tabellen en afscherming
-  lessen.sql                de 40 lessen
+  lessen.sql                de 40 lessen bij de oefeningen
+  lessen-extra.sql          9 losse theorielessen zonder oefening
 data/oefeningen/
   factuur.opgave.ts         startbestand + opdracht (gaat naar de browser)
   factuur.sleutel.ts        antwoordsleutel     (server-only)
