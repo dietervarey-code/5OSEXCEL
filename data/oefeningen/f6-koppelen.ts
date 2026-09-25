@@ -180,7 +180,9 @@ export const koppelenFactuurOpgave: Opgave = {
     'Haal in C5 tot en met C9 de prijs op.',
     'Bereken in E5 tot en met E9 het bedrag per lijn (aantal × prijs).',
     'Bereken in E11 het subtotaal met SOM.',
-    'Bereken in E12 de korting: 5% als het subtotaal boven 1000 ligt, anders niets.',
+    'Bereken in E12 de korting. De drempel staat in B16 en het percentage in B17: '
+      + 'geef korting zodra het subtotaal boven de drempel ligt, anders niets. '
+      + 'Verwijs naar die twee cellen — niet overtypen, dat is de hele opzet van deze oefening.',
     'Bereken in E13 de btw op het bedrag na korting, met het tarief uit B15.',
     'Bereken in E14 het totaal te betalen.',
   ],

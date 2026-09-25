@@ -14,12 +14,12 @@ export const transponerenOpgave: Opgave = {
   leerdoel: 'Een tabel kantelen zonder alles opnieuw te typen.',
   stagecontext:
     'De omzetcijfers staan naast elkaar, maar de boekhouder wil ze onder elkaar om er een ' +
-    'grafiek van te maken. Kantel de tabel met Plakken speciaal › Transponeren.',
+    'grafiek van te maken. Kantel de tabel zonder iets over te typen.',
   opdrachten: [
-    'Kopieer het bereik B3:G4.',
-    'Klik in A7, gebruik de rechtermuisknop en kies Paste Special met de optie Transpose. In het Nederlandse Excel heet dat Plakken speciaal › Transponeren.',
-    'De maanden komen in A7 tot en met A12, de omzet in B7 tot en met B12.',
+    'Typ in A7 de formule =TRANSPONEREN(B3:G4).',
+    'De tabel kantelt vanzelf: de maanden komen in A7 tot en met A12, de omzet in B7 tot en met B12.',
     'Bereken in B14 de totale omzet met SOM.',
+    'Ter info: in echt Excel doe je dit met Kopiëren en dan Plakken speciaal › Transponeren. Dat menu bestaat hier in de browser niet, vandaar de formule.',
   ],
   vergrendeld: [],
   maxScore: 10,

@@ -12,7 +12,7 @@ export const transponerenChecks: Check[] = [
     punten: 4,
     cellen: MAANDCELLEN,
     verwachteVolgorde: MAANDEN,
-    hint: 'Kopieer B3:G4, klik met de rechtermuisknop in A7 en kies Paste Special › Transpose.',
+    hint: 'Typ in A7: =TRANSPONEREN(B3:G4). De tabel kantelt dan vanzelf over de cellen eronder.',
   },
   {
     id: 'cijfers',
@@ -20,7 +20,7 @@ export const transponerenChecks: Check[] = [
     punten: 4,
     cellen: CIJFERCELLEN,
     verwachteWaarden: CIJFERS,
-    hint: 'Transponeren kantelt rijen naar kolommen: wat naast elkaar stond, komt onder elkaar.',
+    hint: 'Transponeren kantelt rijen naar kolommen: wat naast elkaar stond, komt onder elkaar. Eén formule in A7 vult het hele blok.',
   },
   {
     id: 'totaal',

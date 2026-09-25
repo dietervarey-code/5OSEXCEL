@@ -105,6 +105,19 @@ function zoekInTabel(zoekwaarde: Waarde, rijen: Waarde[][], index: number, benad
 export type NlFunctie = { naam: string; uitleg: string; fn: (...args: Arg[]) => Waarde | Waarde[][] };
 
 export const NL_FUNCTIES: NlFunctie[] = [
+  // --- Focus 1: gegevens herschikken ---
+  // Het rekenblad in de browser kent geen "Plakken speciaal > Transponeren";
+  // dat zit alleen in echt Excel. Met deze functie kan de leerling hier
+  // hetzelfde bereiken. Ze geeft een tabel terug, die over de cellen eronder
+  // en ernaast uitvloeit.
+  { naam: 'TRANSPONEREN', uitleg: 'Kantelt een bereik: rijen worden kolommen.', fn: (bereik) => {
+      const t = tabel(bereik);
+      const kolommen = Math.max(0, ...t.map((r) => r.length));
+      return Array.from({ length: kolommen }, (_, k) =>
+        Array.from({ length: t.length }, (_, r) => t[r]?.[k] ?? null),
+      );
+    } },
+
   // --- Focus 2: rekenen ---
   { naam: 'SOM', uitleg: 'Telt alle getallen in een bereik op.', fn: (...a) => getallen(a).reduce((s, n) => s + n, 0) },
   { naam: 'GEMIDDELDE', uitleg: 'Berekent het rekenkundig gemiddelde.', fn: (...a) => { const g = getallen(a); return g.length ? g.reduce((s, n) => s + n, 0) / g.length : '#DEEL/0!'; } },
