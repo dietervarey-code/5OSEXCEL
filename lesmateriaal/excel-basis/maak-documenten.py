@@ -150,7 +150,8 @@ tabel(doc,
 kop(doc, 'Wat je nodig hebt', 2)
 for r_ in [
     'Het bestand excel-startbestand.xlsx. Sla het eerst op onder je eigen naam.',
-    'Het stappenplan: daar staat per oefening wat je moet doen.',
+    'De opdrachtomschrijving: per werkblad wat er al staat en wat jij moet maken.',
+    'Het stappenplan: daar staat stap voor stap hoe je het aanpakt.',
     'De functiefiches: één blad per functie, om bij te pakken als je twijfelt.',
 ]:
     doc.add_paragraph(r_, style='List Bullet')
@@ -172,6 +173,57 @@ tabel(doc, ['Wat', 'Punten'], [
 ], stijl='Light List Accent 1')
 doc.save(MAP + 'excel-opdrachtfiche.docx')
 print('opdrachtfiche geschreven')
+
+# =====================================================================
+#  1b. OPDRACHTOMSCHRIJVING — één pagina per werkblad
+# =====================================================================
+doc = Document()
+opzet(doc)
+kop(doc, 'Opdrachtomschrijving per werkblad')
+alinea(doc, 'Per werkblad staat hier wat er al ingevuld is, wat jij moet maken en welke '
+            'opmaak erbij hoort. Dit is het overzicht: wíl je weten hoe je het aanpakt, '
+            'gebruik dan het stappenplan.')
+alinea(doc, 'Weet je een functie niet meer? Op de functiefiches staat per functie hoe ze '
+            'werkt, met voorbeelden.')
+
+for i, oef in enumerate(o.OEFENINGEN):
+    if i:
+        paginaeinde(doc)
+    kop(doc, f"Werkblad {oef['blad']}", 2)
+    p = doc.add_paragraph()
+    r = p.add_run(f"Oefening {oef['nr']} — {oef['titel']}    ·    {oef['duur']}")
+    r.italic = True
+    r.font.color.rgb = GRIJS
+
+    kader(doc, 'Wat je moet bereiken', [oef['doel']])
+
+    kop(doc, 'Wat er al op het blad staat', 3)
+    tabel(doc, ['Waar', 'Wat'], [[waar, wat] for waar, wat in oef['gegeven']],
+          stijl='Light List Accent 1')
+
+    kop(doc, 'Wat jij moet maken', 3)
+    tabel(doc, ['Waar', 'Wat', 'Waarmee'],
+          [[waar, wat, hoe] for waar, wat, hoe in oef['maken']])
+
+    kop(doc, 'Opmaak', 3)
+    for regel in oef['opmaak']:
+        alinea(doc, regel, style='List Bullet')
+
+    kop(doc, 'Functies die je nodig hebt', 3)
+    p = doc.add_paragraph()
+    for n, naam in enumerate(oef['functies']):
+        if n:
+            p.add_run('   ·   ')
+        r = p.add_run(naam)
+        r.font.name = 'Consolas'
+        r.bold = True
+
+    kader(doc, 'Je bent klaar als', [oef['klaar']])
+    if oef.get('controle'):
+        kader(doc, 'Controleer jezelf', [oef['controle']])
+
+doc.save(MAP + 'excel-opdrachtomschrijving.docx')
+print('opdrachtomschrijving geschreven')
 
 # =====================================================================
 #  2. STAPPENPLAN
@@ -332,8 +384,12 @@ alinea(doc, 'Vijf oefeningen van tien minuten, samen één lesuur. Geen geneste 
 kader(doc, 'Wat je uitdeelt', [
     'excel-startbestand.xlsx — zes werkbladen, bewust kaal want de opmaak hoort bij de opdracht',
     'excel-opdrachtfiche.docx — één blad met het overzicht en de beoordeling',
-    'excel-stappenplan.docx — de vijf oefeningen, stap voor stap',
-    'excel-functiebladen.docx — vijftien fiches, om bij te pakken als ze vastlopen',
+    'excel-opdrachtomschrijving.docx — per werkblad wat gegeven is en wat ze moeten maken',
+    'excel-stappenplan.docx — dezelfde vijf oefeningen, maar stap voor stap',
+    'excel-functiebladen.docx — vijftien fiches met schermbeelden',
+    '',
+    'De omschrijving en het stappenplan overlappen bewust. Wie het snapt, werkt met de',
+    'omschrijving alleen; wie vastloopt, pakt het stappenplan erbij. Deel ze allebei uit.',
 ])
 
 kop(doc, 'Tijdsindeling', 2)

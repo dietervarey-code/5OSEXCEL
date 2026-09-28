@@ -9,7 +9,8 @@ Staat los van het oefenportaal: dit zijn bestanden die je uitdeelt.
 |---|---|
 | `excel-startbestand.xlsx` | leerlingen — zes werkbladen, bewust kaal |
 | `excel-opdrachtfiche.docx` | leerlingen — één blad met het overzicht en de beoordeling |
-| `excel-stappenplan.docx` | leerlingen — de vijf oefeningen, stap voor stap |
+| `excel-opdrachtomschrijving.docx` | leerlingen — per werkblad wat gegeven is en wat ze moeten maken |
+| `excel-stappenplan.docx` | leerlingen — dezelfde vijf oefeningen, maar stap voor stap |
 | `excel-functiebladen.docx` | leerlingen — vijftien fiches met schermbeelden |
 | `excel-lerarenuitleg.docx` | jou — oplossingen, tijdsindeling, veelgemaakte fouten |
 
@@ -30,6 +31,19 @@ de haakjes staan.
 Elke oefening eindigt met een **controle die de leerling zelf kan doen**: een totaal
 dat langs twee wegen moet kloppen, of percentages die allemaal rond hetzelfde getal
 horen te liggen. Zo zien ze hun eigen fout vóór jij het blad krijgt.
+
+## Omschrijving naast stappenplan
+
+Die twee overlappen bewust en dat is de bedoeling.
+
+De **opdrachtomschrijving** zegt per werkblad *wat* er moet gebeuren: wat er al staat,
+welke cellen ze moeten vullen, met welke functie, en welke opmaak erbij hoort. Eén
+pagina per blad, in tabelvorm. Wie het doorheeft, heeft daar genoeg aan.
+
+Het **stappenplan** zegt *hoe*: klik deze cel aan, typ dit, voer door tot daar,
+controleer dat. Voor wie vastloopt of graag begeleid wordt.
+
+Deel ze allebei uit. Sterkere leerlingen slaan het stappenplan vanzelf over.
 
 ## De functiefiches
 
@@ -68,9 +82,16 @@ python3 maak-documenten.py    # tekent ook de schermbeelden
 python3 controleer.py         # kijkt na of alles bij elkaar past
 ```
 
-`controleer.py` faalt als een stap naar een cel verwijst die niet leeg is, als een
-genoemde functie geen fiche heeft, als een fiche een antwoord verklapt, of als de
-code die bewust `#N/B` moet geven toch in de zoektabel blijkt te staan.
+`controleer.py` bewaakt vier dingen tegelijk:
+
+- elke cel die de opdrachtomschrijving als *te maken* opgeeft, is leeg in het startbestand
+- elke cel die ze als *gegeven* opgeeft, is gevuld
+- het stappenplan laat nergens typen in een cel die buiten de omschrijving valt
+- geen enkele fiche bevat een artikelcode, klantcode of bestelnummer uit de opdracht
+
+Samen dekt dat 104 te maken cellen en 189 gegeven cellen. Verder controleert het script
+nog of elke genoemde functie een fiche heeft, en of de code die bewust `#N/B` moet geven
+inderdaad niet in de zoektabel staat.
 
 Er staan **geen vaste rijnummers** in de controle: alles wordt afgeleid uit
 `gegevens.py`. Voeg je daar regels toe, dan schuift de rest vanzelf mee.

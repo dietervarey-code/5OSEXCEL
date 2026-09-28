@@ -9,6 +9,10 @@ binnen de haakjes staan.
 OEFENINGEN = [
     dict(
         nr=1,
+        doel='Van een geteld magazijn een lijst maken die de boekhouding meteen kan gebruiken.',
+        gegeven=[('A4:A15', 'artikelcodes'), ('B4:B15', 'omschrijvingen'), ('C4:C15', 'aantallen in het rek'), ('D4:D15', 'eenheidsprijzen')],
+        maken=[('E4:E15', 'de waarde per regel: aantal maal eenheidsprijs', 'formule, daarna doorvoeren'), ('C17', 'het totale aantal stuks', 'SOM'), ('E17', 'de totale voorraadwaarde', 'SOM')],
+        opmaak=['Koptekst in rij 3: vet, achtergrondkleur, gecentreerd.', 'Kolom D en E: notatie valuta.', 'Totaalrij 17: vet, met een bovenrand zodat ze losstaat van de lijst.'],
         titel='Voorraadlijst afwerken',
         blad='1 Voorraad',
         duur='10 minuten',
@@ -46,6 +50,10 @@ OEFENINGEN = [
     ),
     dict(
         nr=2,
+        doel='Een hele prijslijst aanpassen aan een nieuw percentage, zonder één prijs zelf te berekenen.',
+        gegeven=[('B3', 'het verhogingspercentage — één keer, voor de hele lijst'), ('A6:A15', 'de artikelnamen'), ('B6:B15', 'de huidige prijzen')],
+        maken=[('C6:C15', 'de nieuwe prijs, afgerond op cent', 'AFRONDEN, met een absolute verwijzing naar B3'), ('D6:D15', 'het verschil in euro', 'formule'), ('E6:E15', 'het verschil in procent', 'formule')],
+        opmaak=['B3: notatie percentage.', 'Kolom B, C en D: notatie valuta.', 'Kolom E: notatie percentage.', 'Koptekst in rij 5: vet met achtergrondkleur. Rand rond A5:E15.'],
         titel='Prijslijst aanpassen',
         blad='2 Prijslijst',
         duur='10 minuten',
@@ -88,6 +96,10 @@ OEFENINGEN = [
     ),
     dict(
         nr=3,
+        doel='Een tabel met acht verkopers en drie maanden samenvatten tot een blad dat in vijf seconden te lezen is.',
+        gegeven=[('A4:A11', 'de namen van de verkopers'), ('B4:D11', 'de omzet per maand')],
+        maken=[('E4:E11', 'het kwartaaltotaal per verkoper', 'SOM over de rij'), ('B13:E13', 'het totaal per maand, en rechts het eindtotaal', 'SOM over de kolom, naar rechts doorvoeren'), ('B16', 'het hoogste kwartaaltotaal', 'MAX'), ('B17', 'het laagste kwartaaltotaal', 'MIN'), ('B18', 'het gemiddelde kwartaaltotaal', 'GEMIDDELDE'), ('B19', 'het aantal verkopers', 'AANTAL')],
+        opmaak=['Koptekst in rij 3: vet, achtergrondkleur, gecentreerd.', 'Totaalrij 13: vet met een bovenrand.', 'Samenvattingsblok A15:B19: achtergrondkleur, A15 in het vet.', 'B16 tot B18: notatie valuta. B19 niet — dat is een aantal, geen bedrag.'],
         titel='Verkoopcijfers samenvatten',
         blad='3 Verkoop',
         duur='10 minuten',
@@ -133,6 +145,10 @@ OEFENINGEN = [
     ),
     dict(
         nr=4,
+        doel='Per bestelling laten bepalen of de levering gratis is, en daarna uitrekenen wat die actie kost.',
+        gegeven=[('B3', 'de grens vanaf wanneer de levering gratis is'), ('A6:A19', 'de bestelnummers'), ('B6:B19', 'de klanten'), ('C6:C19', 'de bedragen')],
+        maken=[('D6:D19', 'per bestelling het woord Gratis of Betalend', 'ALS, met een absolute verwijzing naar B3'), ('C21', 'het aantal gratis leveringen', 'AANTAL.ALS'), ('C22', 'het aantal betalende leveringen', 'AANTAL.ALS'), ('C23', 'het bedrag van de gratis leveringen', 'SOM.ALS'), ('C24', 'het bedrag van de betalende leveringen', 'SOM.ALS')],
+        opmaak=['C6:C19: voorwaardelijke opmaak, groen vanaf de grens.', 'Kolom C en de cellen C23 en C24: notatie valuta.', 'Koptekst in rij 5: vet met achtergrondkleur. Labels B21:B24 in het vet.'],
         titel='Bestellingen beoordelen',
         blad='4 Bestellingen',
         duur='10 minuten',
@@ -181,6 +197,10 @@ OEFENINGEN = [
     ),
     dict(
         nr=5,
+        doel='Een lijst met alleen klantcodes aanvullen met naam en stad, zonder iets over te typen.',
+        gegeven=[('A4:A15', 'twaalf klantcodes, door elkaar'), ('G3:I13', 'de zoektabel: code, naam en stad — niet aanpassen')],
+        maken=[('B4:B15', 'de naam van de klant', 'VERT.ZOEKEN, kolom 2'), ('C4:C15', 'de stad van de klant', 'VERT.ZOEKEN, kolom 3'), ('E4', 'het woord Onbekend', 'zelf typen'), ('F4', 'de klantcode die niet in de zoektabel staat', 'zelf typen')],
+        opmaak=['Rand rond A3:C15.', 'Koptekst in rij 3: vet met achtergrondkleur.', 'Koppen vastzetten, zodat ze bij het scrollen blijven staan.', 'Kolommen breed genoeg: geen enkele naam mag afgekapt worden.'],
         titel='Klantenbestand aanvullen',
         blad='5 Klanten',
         duur='10 minuten',

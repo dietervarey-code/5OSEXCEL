@@ -67,15 +67,47 @@ for oef in o.OEFENINGEN:
     if oef['blad'] not in wb.sheetnames:
         fouten.append(f"oefening {oef['nr']}: blad {oef['blad']} bestaat niet")
 
-# 4. Zijn de cellen waar de leerling iets in moet typen, ook echt leeg?
+def cellen_van(verwijzing):
+    """'E4:E15' -> alle cellen daartussen. 'C17' -> die ene cel."""
+    if ':' not in verwijzing:
+        return [verwijzing]
+    links, rechts = verwijzing.split(':')
+    k1, r1 = re.match(r'([A-Z]+)(\d+)', links).groups()
+    k2, r2 = re.match(r'([A-Z]+)(\d+)', rechts).groups()
+    uit = []
+    for k in range(ord(k1), ord(k2) + 1):
+        for r in range(int(r1), int(r2) + 1):
+            uit.append(f'{chr(k)}{r}')
+    return uit
+
+
+# 4. Klopt de opdrachtomschrijving met het startbestand?
+#    Wat de leerling moet maken, hoort leeg te zijn. Wat gegeven is, hoort gevuld.
 for oef in o.OEFENINGEN:
     ws = wb[oef['blad']]
+
+    temaken = [c for waar, *_ in oef['maken'] for c in cellen_van(waar)]
+    bezet = [c for c in temaken if ws[c].value is not None]
+    if bezet:
+        fouten.append(f"{oef['blad']}: deze cellen moet de leerling maken, maar ze zijn al "
+                      f"gevuld: {bezet[:5]}")
+
+    gegeven = [c for waar, _ in oef['gegeven'] for c in cellen_van(waar)]
+    leeg = [c for c in gegeven if ws[c].value is None]
+    if leeg:
+        fouten.append(f"{oef['blad']}: deze cellen zouden gegeven moeten zijn, maar zijn "
+                      f"leeg: {leeg[:5]}")
+
+    # De stappen mogen niet naar een cel wijzen die buiten de omschrijving valt.
     tekst = ' '.join(t + ' ' + u for t, u in oef['stappen'])
-    invul = set(re.findall(r'Klik ([A-Z]\d{1,3}) aan en typ', tekst))
-    for cel in sorted(invul):
-        if ws[cel].value is not None:
-            fouten.append(f"{oef['blad']}: {cel} zou leeg moeten zijn, maar bevat {ws[cel].value!r}")
-    print(f"oefening {oef['nr']} ({oef['blad']}): {len(invul)} invulcellen -> {', '.join(sorted(invul))}")
+    uit_stappen = set(re.findall(r'Klik ([A-Z]\d{1,3}) aan en typ', tekst))
+    buiten = sorted(uit_stappen - set(temaken))
+    if buiten:
+        fouten.append(f"{oef['blad']}: het stappenplan laat typen in {buiten}, maar dat staat "
+                      f"niet in de opdrachtomschrijving")
+
+    print(f"oefening {oef['nr']} ({oef['blad']}): {len(gegeven)} cellen gegeven, "
+          f"{len(temaken)} te maken, {len(uit_stappen)} genoemd in de stappen")
 
 # 5. Staan de brongegevens waar de stappen beweren? Alles afgeleid, niets vast.
 controles = [
