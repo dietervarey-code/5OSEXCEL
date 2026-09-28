@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 """Bouwt de vier documenten uit één bron, zodat stappenplan, fiches en
    lerarenuitleg nooit uit elkaar lopen."""
-import importlib.util
 import os
-
-HIER = os.path.dirname(os.path.abspath(__file__))
-
+import importlib.util
 import re
 from docx import Document
 from docx.shared import Pt, Cm, RGBColor
@@ -13,17 +10,24 @@ from docx.enum.text import WD_BREAK
 from docx.enum.table import WD_TABLE_ALIGNMENT
 
 
-def laad(naam, pad):
-    spec = importlib.util.spec_from_file_location(naam, pad)
+HIER = os.path.dirname(os.path.abspath(__file__))
+
+
+def laad(naam, bestand):
+    spec = importlib.util.spec_from_file_location(naam, os.path.join(HIER, bestand))
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
 
 
-g = laad('g', os.path.join(HIER, 'gegevens.py'))
-a = laad('a', os.path.join(HIER, 'antwoorden.py'))
-f = laad('f', os.path.join(HIER, 'fiches.py'))
-o = laad('o', os.path.join(HIER, 'oefeningen.py'))
+import sys
+sys.path.insert(0, HIER)
+from schermbeeld import teken
+
+g = laad('g', 'gegevens.py')
+a = laad('a', 'antwoorden.py')
+f = laad('f', 'fiches.py')
+o = laad('o', 'oefeningen.py')
 
 MAP = HIER + os.sep
 BLAUW = RGBColor(0x1F, 0x38, 0x64)
@@ -204,6 +208,8 @@ for i, oef in enumerate(o.OEFENINGEN):
         zin(pp, uitleg)
 
     kader(doc, 'Je bent klaar als', [oef['klaar']])
+    if oef.get('controle'):
+        kader(doc, 'Controleer jezelf', [oef['controle']])
 
 doc.save(MAP + 'excel-stappenplan.docx')
 print('stappenplan geschreven')
@@ -211,12 +217,39 @@ print('stappenplan geschreven')
 # =====================================================================
 #  3. FUNCTIEBLADEN
 # =====================================================================
+from docx.shared import Inches
+
+BEELDMAP = os.path.join(HIER, 'beelden')
+
+
+def rendeer_beeld(spec):
+    """Tekent één schermbeeld en geeft het pad terug."""
+    pad_png = os.path.join(BEELDMAP, spec['bestand'] + '.png')
+    teken(
+        pad_png,
+        kolommen=spec['kolommen'],
+        rijen=spec['rijen'],
+        formule=spec.get('formule') or None,
+        geselecteerd=spec.get('geselecteerd'),
+        gemarkeerd=spec.get('gemarkeerd', ()),
+        rechts=spec.get('rechts', ()),
+        vet_rij=spec.get('vet_rij'),
+    )
+    return pad_png
+
+
 doc = Document()
 opzet(doc)
 kop(doc, 'Functiefiches')
-alinea(doc, 'Eén blad per functie. Loop je vast, pak dan de fiche erbij: ze staat op zichzelf.')
-alinea(doc, 'Achteraan staan vijf fiches over dingen die geen functie zijn, maar die je '
-            'wel nodig hebt om de oefeningen af te werken.')
+alinea(doc, 'Eén blad per functie. Elke fiche staat op zichzelf: loop je vast, pak ze erbij '
+            'en je kunt verder.')
+alinea(doc, 'De voorbeelden op deze fiches gaan NIET over je oefening. Ze spelen in een eigen '
+            'wereldje — punten van een toets, temperaturen, uitgaven van een uitstap — zodat je '
+            'de functie leert kennen en ze daarna zelf toepast op jouw gegevens. De cellen die '
+            'je hier ziet zijn dus andere cellen dan die in je opdracht.')
+alinea(doc, 'Achteraan staan vijf fiches over dingen die geen functie zijn, maar die je wel '
+            'nodig hebt.')
+
 
 def fiche(doc, d, soort='FUNCTIE'):
     paginaeinde(doc)
@@ -230,33 +263,51 @@ def fiche(doc, d, soort='FUNCTIE'):
     r = p.add_run(d['wat'])
     r.bold = True
     r.font.size = Pt(12)
-    p2 = doc.add_paragraph()
-    r = p2.add_run(f"Je hebt ze nodig in {d['gebruik']}.")
-    r.italic = True
-    r.font.color.rgb = GRIJS
 
     kop(doc, 'Zo schrijf je ze', 2)
     formuleregel(doc, d['schrijf'])
-    if d['argumenten']:
-        for naam, uitleg in d['argumenten']:
-            p = doc.add_paragraph(style='List Bullet')
-            r = p.add_run(naam)
-            r.font.name = 'Consolas'
-            r.bold = True
-            zin(p, f' — {uitleg}')
+    for naam, uitleg in d['argumenten']:
+        p = doc.add_paragraph(style='List Bullet')
+        r = p.add_run(naam)
+        r.font.name = 'Consolas'
+        r.bold = True
+        zin(p, f' — {uitleg}')
 
-    kop(doc, 'Voorbeeld', 2)
-    for regel in d['voorbeeld']:
-        if regel.startswith('='):
-            formuleregel(doc, regel)
-        else:
-            alinea(doc, regel)
+    kop(doc, 'Hoe het werkt', 2)
+    for regel in d['uitleg']:
+        alinea(doc, regel)
+
+    for spec in d['beelden']:
+        png = rendeer_beeld(spec)
+        p = doc.add_paragraph()
+        p.paragraph_format.space_before = Pt(6)
+        p.add_run().add_picture(png, width=Inches(4.6))
+        po = doc.add_paragraph()
+        po.paragraph_format.space_after = Pt(10)
+        r = po.add_run(spec['onderschrift'])
+        r.italic = True
+        r.font.size = Pt(9.5)
+        r.font.color.rgb = GRIJS
+
+    if d.get('varianten'):
+        kop(doc, 'Varianten', 2)
+        t = doc.add_table(rows=0, cols=2)
+        t.style = 'Light Grid Accent 1'
+        for formule, uitleg in d['varianten']:
+            c = t.add_row().cells
+            rr = c[0].paragraphs[0].add_run(formule)
+            rr.font.name = 'Consolas'
+            rr.font.size = Pt(9.5)
+            zin(c[1].paragraphs[0], uitleg)
+        doc.add_paragraph()
 
     kop(doc, 'Wat je moet weten', 2)
     for regel in d['weten']:
         alinea(doc, regel, style='List Bullet')
 
     kader(doc, 'De fout die het vaakst gemaakt wordt', [d['fout']])
+    if d.get('zelf'):
+        kader(doc, 'Probeer het zelf', [d['zelf']])
 
 
 for d in f.FUNCTIES:
@@ -265,7 +316,8 @@ for d in f.HULP:
     fiche(doc, d, 'GEEN FUNCTIE, WEL NODIG')
 
 doc.save(MAP + 'excel-functiebladen.docx')
-print(f'functiebladen geschreven ({len(f.FUNCTIES)} functies + {len(f.HULP)} hulpfiches)')
+print(f'functiebladen geschreven ({len(f.FUNCTIES)} functies + {len(f.HULP)} hulpfiches, '
+      f'{sum(len(x["beelden"]) for x in f.FUNCTIES + f.HULP)} schermbeelden)')
 
 # =====================================================================
 #  4. LERARENUITLEG
@@ -306,45 +358,64 @@ paginaeinde(doc)
 kop(doc, 'Oplossingen')
 
 kop(doc, 'Oefening 1 — Voorraadlijst', 2)
-formuleregel(doc, 'E4:  =C4*D4        (doorvoeren tot E11)')
-formuleregel(doc, 'E13: =SOM(E4:E11)')
-alinea(doc, f'Het totaal is {a.O1_SOM:.2f}. De acht waarden:')
+formuleregel(doc, f'E4:  =C4*D4            (doorvoeren tot E{g.O1_EIND})')
+formuleregel(doc, f'E{g.O1_TOTAAL}: =SOM(E4:E{g.O1_EIND})')
+formuleregel(doc, f'C{g.O1_TOTAAL}: =SOM(C4:C{g.O1_EIND})')
+alinea(doc, f'Totaal aantal stuks: {a.O1_STUKS}. Totale waarde: {a.O1_SOM:.2f}.')
 tabel(doc, ['Artikel', 'Aantal', 'Prijs', 'Waarde'],
       [[code, aantal, f'{prijs:.2f}', f'{w:.2f}']
        for (code, _, aantal, prijs), w in zip(g.O1, a.O1_WAARDEN)])
 
 kop(doc, 'Oefening 2 — Prijslijst', 2)
-formuleregel(doc, 'C6:  =AFRONDEN(B6*(1+$B$3);2)   (doorvoeren tot C12)')
-formuleregel(doc, 'D6:  =C6-B6                     (doorvoeren tot D12)')
-tabel(doc, ['Artikel', 'Huidig', 'Nieuw', 'Verschil'],
-      [[art, f'{p_:.2f}', f'{n:.2f}', f'{v:.2f}']
-       for (art, p_), n, v in zip(g.O2, a.O2_NIEUW, a.O2_VERSCHIL)])
+formuleregel(doc, f'C6:  =AFRONDEN(B6*(1+$B$3);2)   (doorvoeren tot C{g.O2_EIND})')
+formuleregel(doc, f'D6:  =C6-B6                     (doorvoeren tot D{g.O2_EIND})')
+formuleregel(doc, f'E6:  =D6/B6                     (doorvoeren tot E{g.O2_EIND}, notatie percentage)')
+tabel(doc, ['Artikel', 'Huidig', 'Nieuw', 'Verschil', 'In %'],
+      [[art, f'{p_:.2f}', f'{n:.2f}', f'{v:.2f}', f'{pr:.2%}']
+       for (art, p_), n, v, pr in zip(g.O2, a.O2_NIEUW, a.O2_VERSCHIL, a.O2_PROCENT)])
 alinea(doc, 'Hier gaat het het vaakst mis. Wie de dollartekens vergeet, ziet dat pas vanaf '
-            'rij 7: B3 wordt dan B4, en die cel is leeg. De nieuwe prijs is dan gelijk aan '
-            'de oude. Laat ze C12 aanklikken en in de formulebalk kijken.')
+            'de tweede rij: B3 wordt dan B4, en die cel is leeg. De nieuwe prijs is dan gelijk '
+            'aan de oude, en het verschil wordt 0.')
+alinea(doc, 'Kolom E is een ingebouwde controle: alle percentages horen rond 3,5 % te liggen. '
+            'Eén die eruit springt, wijst rechtstreeks naar de foute rij. Laat ze dat zelf zien.')
 
 kop(doc, 'Oefening 3 — Verkoopcijfers', 2)
-formuleregel(doc, 'E4:  =SOM(B4:D4)       (doorvoeren tot E9)')
-formuleregel(doc, 'B12: =MAX(E4:E9)')
-formuleregel(doc, 'B13: =MIN(E4:E9)')
-formuleregel(doc, 'B14: =GEMIDDELDE(E4:E9)')
-formuleregel(doc, 'B15: =AANTAL(E4:E9)')
+formuleregel(doc, f'E4:  =SOM(B4:D4)          (doorvoeren tot E{g.O3_EIND})')
+formuleregel(doc, f'B{g.O3_MAANDTOTAAL}: =SOM(B4:B{g.O3_EIND})         (naar rechts doorvoeren tot E{g.O3_MAANDTOTAAL})')
+formuleregel(doc, f'B{g.O3_SAMENVATTING}: =MAX(E4:E{g.O3_EIND})')
+formuleregel(doc, f'B{g.O3_SAMENVATTING + 1}: =MIN(E4:E{g.O3_EIND})')
+formuleregel(doc, f'B{g.O3_SAMENVATTING + 2}: =GEMIDDELDE(E4:E{g.O3_EIND})')
+formuleregel(doc, f'B{g.O3_SAMENVATTING + 3}: =AANTAL(E4:E{g.O3_EIND})')
 tabel(doc, ['Verkoper', 'Kwartaaltotaal'],
       [[naam, t] for (naam, *_), t in zip(g.O3, a.O3_TOTALEN)])
+tabel(doc, ['Maandtotalen', 'Januari', 'Februari', 'Maart', 'Eindtotaal'],
+      [[f'rij {g.O3_MAANDTOTAAL}'] + [str(x) for x in a.O3_PER_MAAND] + [str(a.O3_EINDTOTAAL)]],
+      stijl='Light List Accent 1')
 tabel(doc, ['Samenvatting', 'Antwoord'], [
     ['Hoogste (MAX)', a.O3_MAX],
     ['Laagste (MIN)', a.O3_MIN],
     ['Gemiddelde', f'{a.O3_GEM:.0f}'],
     ['Aantal verkopers', a.O3_AANTAL],
 ], stijl='Light List Accent 1')
+alinea(doc, f'Het eindtotaal {a.O3_EINDTOTAAL} moet langs twee wegen kloppen: als som van de '
+            f'acht kwartaaltotalen én als som van de drie maandtotalen. Dat is de controle '
+            f'die in stap 3 gevraagd wordt.')
 
 kop(doc, 'Oefening 4 — Bestellingen', 2)
-formuleregel(doc, 'D6:  =ALS(C6>=$B$3;"Gratis";"Betalend")   (doorvoeren tot D15)')
-formuleregel(doc, 'C17: =AANTAL.ALS(D6:D15;"Gratis")')
-formuleregel(doc, 'C18: =SOM.ALS(D6:D15;"Gratis";C6:C15)')
+formuleregel(doc, f'D6:  =ALS(C6>=$B$3;"Gratis";"Betalend")      (doorvoeren tot D{g.O4_EIND})')
+formuleregel(doc, f'C{g.O4_ANTWOORD}: =AANTAL.ALS(D6:D{g.O4_EIND};"Gratis")')
+formuleregel(doc, f'C{g.O4_ANTWOORD + 1}: =AANTAL.ALS(D6:D{g.O4_EIND};"Betalend")')
+formuleregel(doc, f'C{g.O4_ANTWOORD + 2}: =SOM.ALS(D6:D{g.O4_EIND};"Gratis";C6:C{g.O4_EIND})')
+formuleregel(doc, f'C{g.O4_ANTWOORD + 3}: =SOM.ALS(D6:D{g.O4_EIND};"Betalend";C6:C{g.O4_EIND})')
 tabel(doc, ['Bestelnr', 'Bedrag', 'Levering'],
       [[nr, f'{bedrag:.2f}', lev] for (nr, _, bedrag), lev in zip(g.O4, a.O4_LEVERING)])
-alinea(doc, f'Antwoorden: {a.O4_AANTAL_GRATIS} gratis leveringen, samen {a.O4_SOM_GRATIS:.2f} euro.')
+tabel(doc, ['Vraag', 'Antwoord'], [
+    ['Aantal gratis', a.O4_AANTAL_GRATIS],
+    ['Aantal betalend', a.O4_AANTAL_BETALEND],
+    ['Bedrag gratis', f'{a.O4_SOM_GRATIS:.2f}'],
+    ['Bedrag betalend', f'{a.O4_SOM_BETALEND:.2f}'],
+    ['Controle: samen', f'{a.O4_SOM_ALLES:.2f}'],
+], stijl='Light List Accent 1')
 kader(doc, 'Twee bestellingen om klassikaal bij stil te staan', [
     'B-2104 staat op 489,90 — net onder de grens, dus Betalend.',
     'B-2108 staat op 501,00 — net erboven, dus Gratis.',
@@ -353,9 +424,22 @@ kader(doc, 'Twee bestellingen om klassikaal bij stil te staan', [
 ])
 
 kop(doc, 'Oefening 5 — Klantenbestand', 2)
-formuleregel(doc, 'B4:  =VERT.ZOEKEN(A4;$G$4:$I$11;2;ONWAAR)   (doorvoeren tot B11)')
-formuleregel(doc, 'C4:  =VERT.ZOEKEN(A4;$G$4:$I$11;3;ONWAAR)   (doorvoeren tot C11)')
-tabel(doc, ['Code', 'Naam', 'Stad'], [list(r_) for r_ in a.O5_ANTWOORD])
+formuleregel(doc, f'B4:  =VERT.ZOEKEN(A4;$G$4:$I${g.O5_TAB_EIND};2;ONWAAR)   (doorvoeren tot B{g.O5_EIND})')
+formuleregel(doc, f'C4:  =VERT.ZOEKEN(A4;$G$4:$I${g.O5_TAB_EIND};3;ONWAAR)   (doorvoeren tot C{g.O5_EIND})')
+tabel(doc, ['Rij', 'Code', 'Naam', 'Stad'],
+      [[g.O5_START + i, code, naam, stad] for i, (code, naam, stad) in enumerate(a.O5_ANTWOORD)])
+onbekend_rij = g.O5_START + g.O5_VRAAG.index(g.O5_ONBEKEND)
+kader(doc, 'De rij die #N/B geeft', [
+    f'Code {g.O5_ONBEKEND} op rij {onbekend_rij} staat niet in de zoektabel. Die geeft #N/B, '
+    'en dat hoort zo.',
+    '',
+    'Dat is bewust ingebouwd. Leerlingen denken bij een foutmelding meestal dat ze zelf iets '
+    'verkeerd deden. Hier leren ze het verschil: #N/B betekent dat de waarde niet bestaat, '
+    'niet dat hun formule fout is.',
+    '',
+    'Krijgen ze méér dan één #N/B, dan is er wél iets mis: bijna altijd de dollartekens, '
+    'waardoor de zoektabel is meegeschoven.',
+])
 
 # --- fouten -----------------------------------------------------------
 paginaeinde(doc)
@@ -379,11 +463,13 @@ tabel(doc, ['Wat je ziet', 'Wat eraan scheelt', 'Wat je zegt'], [
 
 kop(doc, 'Verbetersleutel in het kort', 2)
 tabel(doc, ['Oefening', 'Controleer', 'Antwoord'], [
-    ['1', 'E13', f'{a.O1_SOM:.2f}'],
-    ['2', 'C12 en D12', f'{a.O2_NIEUW[-1]:.2f} en {a.O2_VERSCHIL[-1]:.2f}'],
-    ['3', 'B12 tot B15', f'{a.O3_MAX} / {a.O3_MIN} / {a.O3_GEM:.0f} / {a.O3_AANTAL}'],
-    ['4', 'C17 en C18', f'{a.O4_AANTAL_GRATIS} en {a.O4_SOM_GRATIS:.2f}'],
-    ['5', 'B11 en C11', f'{a.O5_ANTWOORD[-1][1]} / {a.O5_ANTWOORD[-1][2]}'],
+    ['1', f'C{g.O1_TOTAAL} en E{g.O1_TOTAAL}', f'{a.O1_STUKS} stuks en {a.O1_SOM:.2f}'],
+    ['2', f'C{g.O2_EIND} en E{g.O2_EIND}', f'{a.O2_NIEUW[-1]:.2f} en {a.O2_PROCENT[-1]:.2%}'],
+    ['3', f'E{g.O3_MAANDTOTAAL} en B{g.O3_SAMENVATTING} tot B{g.O3_SAMENVATTING + 3}',
+     f'{a.O3_EINDTOTAAL} / {a.O3_MAX} / {a.O3_MIN} / {a.O3_GEM:.0f} / {a.O3_AANTAL}'],
+    ['4', f'C{g.O4_ANTWOORD} tot C{g.O4_ANTWOORD + 3}',
+     f'{a.O4_AANTAL_GRATIS} / {a.O4_AANTAL_BETALEND} / {a.O4_SOM_GRATIS:.2f} / {a.O4_SOM_BETALEND:.2f}'],
+    ['5', f'B{g.O5_EIND} en één rij met #N/B', f'{a.O5_ANTWOORD[-1][1]}, rij {onbekend_rij} geeft #N/B'],
 ], stijl='Light List Accent 1')
 alinea(doc, 'Staat in E13 het juiste totaal, dan kloppen de acht regels erboven ook. '
             'Hetzelfde geldt voor de laatste rij van elke doorgevoerde kolom: die is de '
