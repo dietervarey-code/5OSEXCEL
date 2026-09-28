@@ -10,3 +10,4 @@ next-env.d.ts
 # Lokale klasgegevens en sleutels
 data/opslag.json
 klas*.csv
+__pycache__/
