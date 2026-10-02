@@ -3,6 +3,9 @@
    lerarenuitleg nooit uit elkaar lopen."""
 import os
 import importlib.util
+import sys
+
+sys.dont_write_bytecode = True   # geen __pycache__ naast het lesmateriaal
 import re
 from docx import Document
 from docx.shared import Pt, Cm, RGBColor

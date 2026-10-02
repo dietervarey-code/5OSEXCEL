@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 import importlib.util
+import sys
+
+sys.dont_write_bytecode = True   # geen __pycache__ naast het lesmateriaal
 from docx import Document
 from docx.shared import Pt, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK

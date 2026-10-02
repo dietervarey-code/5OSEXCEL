@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """Rekent alle antwoorden uit, precies zoals Excel het zou doen."""
 import importlib.util
+import sys
+
+sys.dont_write_bytecode = True   # geen __pycache__ naast het lesmateriaal
 import os
 from decimal import Decimal, ROUND_HALF_UP
 

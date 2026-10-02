@@ -2,6 +2,9 @@
 """Bouwt het startbestand van de herhalingsbundel. Bewust kaal: de opmaak
    hoort bij de opdracht. Alleen de kolommen staan breed genoeg."""
 import importlib.util
+import sys
+
+sys.dont_write_bytecode = True   # geen __pycache__ naast het lesmateriaal
 import os
 from openpyxl import Workbook
 from openpyxl.styles import Font

@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 import importlib.util
+import sys
+
+sys.dont_write_bytecode = True   # geen __pycache__ naast het lesmateriaal
 spec = importlib.util.spec_from_file_location('m','/tmp/ctrl/moordzaak-data.py')
 m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
 

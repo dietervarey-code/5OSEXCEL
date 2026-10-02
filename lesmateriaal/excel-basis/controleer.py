@@ -5,6 +5,9 @@ Alle posities worden afgeleid uit gegevens.py. Voeg je daar rijen toe, dan
 schuift deze controle vanzelf mee — er staan geen vaste rijnummers in.
 """
 import importlib.util
+import sys
+
+sys.dont_write_bytecode = True   # geen __pycache__ naast het lesmateriaal
 import os
 import re
 from openpyxl import load_workbook

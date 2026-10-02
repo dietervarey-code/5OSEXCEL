@@ -26,7 +26,7 @@ def laad(naam, bestand):
 g = laad('g', 'gegevens.py')
 o = laad('o', 'oefeningen.py')
 
-wb = load_workbook(os.path.join(HIER, 'excel-herhaling-startbestand.xlsx'))
+wb = load_workbook(os.path.join(HIER, 'excel-herhaling-2-startbestand.xlsx'))
 fouten = []
 
 # De functies en hulpfiches die de basisbundel aanbiedt. Deze bundel mag er
@@ -111,48 +111,77 @@ for oef in o.OEFENINGEN:
 
     print(f"blad {oef['nr']} ({oef['blad']}): {len(gegeven)} gegeven, {len(temaken)} te maken")
 
+
 # 5. Staan de brongegevens waar de opdracht beweert?
 controles = [
-    ('1 Dagontvangsten', f'B{g.B1_START}', g.B1[0][1]),
-    ('1 Dagontvangsten', f'D{g.B1_EIND}', g.B1[-1][3]),
-    ('2 Werkuren', f'B{g.B2_START}', g.B2[0][1]),
-    ('2 Werkuren', f'D{g.B2_EIND}', g.B2[-1][3]),
-    ('3 Kortingen', 'B2', g.B3_PERCENTAGE),
-    ('3 Kortingen', f'B{g.B3_EIND}', g.B3[-1][1]),
-    ('4 Verbruik', f'B{g.B4_START}', g.B4[0][1]),
-    ('4 Verbruik', f'B{g.B4_EIND}', g.B4[-1][1]),
-    ('5 Inschrijvingen', 'B2', g.B5_GRENS),
-    ('5 Inschrijvingen', f'B{g.B5_EIND}', g.B5[-1][1]),
-    ('6 Afdelingen', f'C{g.B6_START}', g.B6[0][2]),
-    ('6 Afdelingen', f'B{g.B6_EIND}', g.B6[-1][1]),
-    ('6 Afdelingen', f'A{g.B6_SAMENVATTING}', g.B6_AFDELINGEN[0]),
-    ('7 Materiaal', f'A{g.B7_START}', g.B7_REGELS[0][0]),
-    ('7 Materiaal', f'D{g.B7_EIND}', g.B7_REGELS[-1][1]),
-    ('7 Materiaal', f'G{g.B7_TAB_START}', g.B7_TABEL[0][0]),
-    ('7 Materiaal', f'I{g.B7_TAB_EIND}', g.B7_TABEL[-1][2]),
+    ('1 Weekomzet', f'B{g.B1_START}', g.B1[0][1]),
+    ('1 Weekomzet', f'D{g.B1_EIND}', g.B1[-1][3]),
+    ('2 Kwekers', f'B{g.B2_START}', g.B2[0][1]),
+    ('2 Kwekers', f'D{g.B2_EIND}', g.B2[-1][3]),
+    ('3 Prijsverhoging', 'B2', g.B3_PERCENTAGE),
+    ('3 Prijsverhoging', f'B{g.B3_EIND}', g.B3[-1][1]),
+    ('4 Bezoekers', f'B{g.B4_START}', g.B4[0][1]),
+    ('4 Bezoekers', f'B{g.B4_EIND}', g.B4[-1][1]),
+    ('5 Snoeicursus', 'B2', g.B5_GRENS),
+    ('5 Snoeicursus', f'B{g.B5_EIND}', g.B5[-1][1]),
+    ('6 Leveranciers', f'C{g.B6_START}', g.B6[0][2]),
+    ('6 Leveranciers', f'B{g.B6_EIND}', g.B6[-1][1]),
+    ('6 Leveranciers', f'A{g.B6_SAMENVATTING}', g.B6_LEVERANCIERS[0]),
+    ('7 Zaden', f'A{g.B7_START}', g.B7_REGELS[0][0]),
+    ('7 Zaden', f'D{g.B7_EIND}', g.B7_REGELS[-1][1]),
+    ('7 Zaden', f'G{g.B7_TAB_START}', g.B7_TABEL[0][0]),
+    ('7 Zaden', f'I{g.B7_TAB_EIND}', g.B7_TABEL[-1][2]),
 ]
 for blad, cel, verwacht in controles:
     echt = wb[blad][cel].value
     if echt != verwacht:
         fouten.append(f'{blad}!{cel}: verwacht {verwacht!r}, gevonden {echt!r}')
 
-# 6. Op blad 5 moet precies één deelnemer op de grens zitten. Zonder die ene
-#    rij merkt niemand het verschil tussen > en >=.
-op_de_grens = [naam for naam, leeftijd in g.B5 if leeftijd == g.B5_GRENS]
+# 6. Op blad 2 moet precies één kweker op de grens zitten, en op blad 5 precies
+#    één cursist. Zonder die ene rij merkt niemand het verschil tussen > en >=.
+op_de_grens = [naam for naam, ap, me, jn in g.B2 if ap + me + jn == g.B2_GROOT]
 if len(op_de_grens) != 1:
-    fouten.append(f'blad 5: precies één deelnemer op leeftijd {g.B5_GRENS} verwacht, '
+    fouten.append(f'blad 2: precies één kweker op {g.B2_GROOT} planten verwacht, '
                   f'gevonden: {op_de_grens}')
 else:
-    print(f'\nblad 5: {op_de_grens[0]} zit precies op de grens ({g.B5_GRENS}) — '
+    print(f'\nblad 2: {op_de_grens[0]} zit precies op de grens ({g.B2_GROOT})')
+
+op_de_grens = [naam for naam, punten in g.B5 if punten == g.B5_GRENS]
+if len(op_de_grens) != 1:
+    fouten.append(f'blad 5: precies één cursist met {g.B5_GRENS} punten verwacht, '
+                  f'gevonden: {op_de_grens}')
+else:
+    print(f'blad 5: {op_de_grens[0]} zit precies op de grens ({g.B5_GRENS}) — '
           f'daar wordt > tegenover >= zichtbaar')
 
-# 7. Op blad 7 moet minstens één code twee keer voorkomen, anders heeft de
-#    SOM.ALS aan het eind geen betekenis.
+# 7. Op blad 4 moet de drempel van AANTAL.ALS een ander antwoord geven dan
+#    "boven het gemiddelde", anders lijken het twee keer dezelfde vraag.
+waarden = [v for _, v in g.B4]
+gem = sum(waarden) / len(waarden)
+boven_gem = sum(1 for v in waarden if v > gem)
+boven_drempel = sum(1 for v in waarden if v > g.B4_DREMPEL)
+if boven_gem == boven_drempel:
+    fouten.append(f'blad 4: boven het gemiddelde ({boven_gem}) en boven de drempel '
+                  f'({boven_drempel}) geven hetzelfde aantal — kies een andere drempel')
+else:
+    print(f'blad 4: {boven_gem} maanden boven het gemiddelde, {boven_drempel} boven '
+          f'{g.B4_DREMPEL} — twee verschillende antwoorden')
+
+# 8. Op blad 7 moet de code van het deeltotaal meer dan één keer besteld zijn,
+#    anders heeft de SOM.ALS aan het eind geen betekenis.
 dubbel = [c for c, n in Counter(c for c, _ in g.B7_REGELS).items() if n > 1]
-if 'M-01' not in dubbel:
-    fouten.append('blad 7: code M-01 moet meer dan één keer besteld zijn voor de SOM.ALS')
+if g.B7_DEELTOTAAL not in dubbel:
+    fouten.append(f'blad 7: code {g.B7_DEELTOTAAL} moet meer dan één keer besteld zijn '
+                  f'voor de SOM.ALS')
 else:
     print(f'blad 7: codes die meer dan één keer voorkomen: {", ".join(sorted(dubbel))}')
+
+# 9. Elke code in de bestelling moet in de zoektabel staan, anders geeft
+#    VERT.ZOEKEN #N/B en is de oefening niet te maken.
+bekend = {c for c, _, _ in g.B7_TABEL}
+onbekend = sorted({c for c, _ in g.B7_REGELS} - bekend)
+if onbekend:
+    fouten.append(f'blad 7: deze codes staan niet in de zoektabel: {onbekend}')
 
 print()
 if fouten:

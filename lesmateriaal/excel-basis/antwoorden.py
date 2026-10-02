@@ -2,6 +2,9 @@
 """Rekent alle antwoorden uit, precies zoals Excel het zou doen.
    De lerarenuitleg gebruikt deze cijfers, zodat ze nooit uit elkaar lopen."""
 import importlib.util
+import sys
+
+sys.dont_write_bytecode = True   # geen __pycache__ naast het lesmateriaal
 import os
 from decimal import Decimal, ROUND_HALF_UP
 

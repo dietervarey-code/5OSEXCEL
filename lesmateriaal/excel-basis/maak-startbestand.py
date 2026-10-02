@@ -2,6 +2,9 @@
 """Bouwt het startbestand. Bewust kaal: de opmaak is een deel van de opdracht.
    Alleen de kolombreedtes staan goed, zodat er niets wegvalt achter ###."""
 import importlib.util
+import sys
+
+sys.dont_write_bytecode = True   # geen __pycache__ naast het lesmateriaal
 import os
 from openpyxl import Workbook
 from openpyxl.styles import Font
