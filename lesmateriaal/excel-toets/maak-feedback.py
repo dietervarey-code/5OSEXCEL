@@ -116,7 +116,7 @@ def sterk(r):
     else:
         goed = [x for b in r['bladen'] for x in b['regels'] if x['punten'] == x['max']]
         alles = [x for b in r['bladen'] for x in b['regels']]
-        uit.append(f'{len(goed)} van de {len(alles)} opdrachtcellen staan juist, goed voor '
+        uit.append(f'{len(goed)} van de {len(alles)} opdrachten staan juist, goed voor '
                    f"{getal(r['formulepunten'])} van de {r['formulemax']} formulepunten.")
 
     getypt = [x for b in r['bladen'] for x in b['regels'] if x['zonder_formule']]
@@ -150,38 +150,93 @@ def werkpunten(r):
 
 
 def opmerkingen(r):
+    """Dingen die geen punten kosten maar die hij wel moet weten."""
     uit = []
     for b in r['bladen']:
         for e in b['opmaak']:
             if e.get('opmerking'):
                 uit.append(f"Blad {b['nr']}: {e['opmerking']}.")
         for x in b['regels']:
+            if x.get('doorwerkend'):
+                uit.append(f"Blad {b['nr']}, {x['waar']}: {x['opmerking']}.")
+            if x.get('schuift') and x['punten'] == x['max']:
+                uit.append(
+                    f"Blad {b['nr']}, {x['waar']}: je antwoord klopt, maar je bereik "
+                    'staat niet vast met dollartekens. Het schuift mee bij het '
+                    'doorvoeren, en hier kwam dat toevallig goed uit omdat de gegevens '
+                    'netjes gegroepeerd stonden. Bij een andere volgorde loopt het mis.')
+            if x.get('zonder_functie') and x['punten'] == x['max']:
+                uit.append(
+                    f"Blad {b['nr']}, {x['waar']}: het antwoord klopt, maar "
+                    f"{x['functie']} staat niet in elke cel ({', '.join(x['zonder_functie'])}).")
             if x['zonder_formule'] and x['punten'] > 0:
                 uit.append(f"Blad {b['nr']}, {x['waar']}: het antwoord klopt, maar er "
                            'staat een getal in plaats van een formule. Dat telt niet mee.')
     return uit
 
 
+def grootste_oorzaak(r):
+    """Waar gingen de meeste punten verloren? Dat bepaalt de slotzin, zodat
+       die over deze leerling gaat en niet over zijn cijfer."""
+    verlies = {'opmaak': 0.0, 'getypt': 0.0, 'niet gemaakt': 0.0, 'formules': 0.0}
+    for b in r['bladen']:
+        for e in b['opmaak']:
+            verlies['opmaak'] += e['max'] - e['punten']
+        for x in b['regels']:
+            tekort = x['max'] - x['punten']
+            if not tekort:
+                continue
+            if x['zonder_formule']:
+                verlies['getypt'] += tekort
+            elif x['opmerking'].startswith('niet gemaakt'):
+                verlies['niet gemaakt'] += tekort
+            else:
+                verlies['formules'] += tekort
+    grootste = max(verlies, key=verlies.get)
+    return (grootste, verlies[grootste]) if verlies[grootste] > 0 else (None, 0)
+
+
+RAAD = {
+    'opmaak': ('Wat je nog laat liggen is de opmaak. Lees bij een volgende toets de '
+               'opmaakeisen één voor één af als een checklist: het staat er allemaal '
+               'letterlijk bij, en het zijn punten die je zo meeneemt.'),
+    'getypt': ('Je grootste verlies zit niet in wat je kent, maar in hoe je het '
+               'opschrijft: op een paar plaatsen heb je het antwoord zelf uitgerekend '
+               'en ingetypt. Dat telt niet mee, ook al klopt het. Laat Excel rekenen — '
+               'dan past het zich ook aan als er een cijfer verandert.'),
+    'niet gemaakt': ('Je verliest de meeste punten aan werk dat niet af is. Kijk voor je '
+                     'afgeeft nog eens de opdracht door en vink af: staat er in elke '
+                     'gevraagde cel iets?'),
+    'formules': ('Je verliest de meeste punten in de formules zelf. Kijk bij de '
+                 'werkpunten hierboven welke cel het was en open ze in je eigen '
+                 'bestand: meestal klopt de functie wel en is het het bereik dat '
+                 'niet ver genoeg loopt of meeschuift.'),
+}
+
+
 def slotzin(r):
     deel = r['totaal'] / r['maximum']
-    if deel >= 0.9:
+    oorzaak, verlies = grootste_oorzaak(r)
+    # Een halve punt verlies is geen werkpunt. Dan hoort er geen raadgeving
+    # bij alsof er iets scheelt.
+    if verlies <= 1:
+        oorzaak = None
+    if deel >= 0.9 and oorzaak is None:
         return ('Uitstekend. Je beheerst de basisfuncties en je werkt netjes. Voor jou is '
                 'de volgende stap: functies in elkaar zetten — dan kan je vragen '
                 'beantwoorden waar één functie niet aan toe komt.')
-    if deel >= 0.8:
-        return ('Sterk werk. De functies zitten goed; wat je nog laat liggen is detailwerk. '
-                'Lees bij een volgende toets de opmaakeisen één voor één af als een '
-                'checklist.')
-    if deel >= 0.65:
-        return ('Een goed resultaat. De basis staat er. Kijk de werkpunten hierboven na in '
-                'je eigen bestand: je ziet meteen wat er anders moest.')
-    if deel >= 0.5:
-        return ('Je haalt het, maar er blijven punten liggen die je met wat meer controle '
-                'binnenhaalt. Gebruik de controle die bij elk blad staat — die vindt de '
-                'meeste fouten voor je.')
-    return ('Dit is nog niet goed genoeg, maar het is wel herstelbaar: de meeste fouten '
-            'zitten in dezelfde twee of drie dingen. Werk de herhalingsbundel opnieuw '
-            'door en kom daarna langs met je vragen.')
+    if deel >= 0.9:
+        opening = ('Uitstekend. Je beheerst de basisfuncties en je werkt netjes. ')
+    elif deel >= 0.8:
+        opening = 'Sterk werk. De functies zitten goed. '
+    elif deel >= 0.65:
+        opening = 'Een goed resultaat. De basis staat er. '
+    elif deel >= 0.5:
+        opening = 'Je haalt het, maar er blijven punten liggen die binnen bereik lagen. '
+    else:
+        opening = ('Dit is nog niet goed genoeg, maar het is herstelbaar: de fouten '
+                   'zitten in een paar dingen die terugkeren. ')
+    return opening + RAAD.get(oorzaak, '')
 
 
 # ------------------------------------------------------------------ main

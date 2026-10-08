@@ -38,7 +38,48 @@ def _laad(naam, bestand):
 
 v = _laad('v', 'verwachting.py')
 
-TOLERANTIE = 0.005          # bedragen tot op een halve cent
+# Alleen de ruis van drijvende komma wegfilteren, niets meer. Een halve cent
+# marge zou op blad 4 net de fout wegmoffelen waar dat blad over gaat: wie
+# niet afrondt krijgt 10,875 in plaats van 10,88, en dat verschil IS de fout.
+TOLERANTIE = 1e-6
+
+
+# Een xlsx bewaart elke formule in het Engels. Om na te gaan of de gevraagde
+# functie gebruikt is, moet de Nederlandse naam dus eerst vertaald worden.
+ENGELS = {'SOM': 'SUM', 'AFRONDEN': 'ROUND', 'MAX': 'MAX', 'MIN': 'MIN',
+          'GEMIDDELDE': 'AVERAGE', 'AANTAL': 'COUNT', 'ALS': 'IF',
+          'AANTAL.ALS': 'COUNTIF', 'SOM.ALS': 'SUMIF', 'VERT.ZOEKEN': 'VLOOKUP'}
+VERWIJZING = re.compile(r'(\$?[A-Z]{1,3}\$?\d{1,4})(?::(\$?[A-Z]{1,3}\$?\d{1,4}))?')
+
+
+def gebruikt_functie(formule, functie):
+    """Staat de gevraagde functie in de formule? COUNT mag niet matchen op
+       COUNTIF, dus er wordt op het haakje erachter gekeken."""
+    if not functie or not isinstance(formule, str):
+        return True
+    engels = ENGELS.get(functie)
+    if not engels:
+        return True
+    return re.search(rf'\b{re.escape(engels)}\s*\(', formule.upper()) is not None
+
+
+def verwezen_cellen(formule):
+    """Alle cellen waar een formule naar kijkt, bereiken uitgeschreven."""
+    uit = set()
+    if not isinstance(formule, str):
+        return uit
+    for m in VERWIJZING.finditer(formule):
+        links = m.group(1).replace('$', '')
+        rechts = (m.group(2) or m.group(1)).replace('$', '')
+        uit |= set(cellen_van_veilig(f'{links}:{rechts}'))
+    return uit
+
+
+def cellen_van_veilig(bereik):
+    try:
+        return v.cellen_van(bereik)
+    except (AttributeError, ValueError):
+        return []
 
 
 # --------------------------------------------------------------- waarden
@@ -55,10 +96,19 @@ def gelijk(gekregen, verwacht):
     return str(gekregen).strip().lower() == str(verwacht).strip().lower()
 
 
-def toon(x):
-    if isinstance(x, float):
-        return f'{x:.2f}'.rstrip('0').rstrip('.').replace('.', ',')
-    return str(x)
+def toon(x, naast=None):
+    """Een waarde leesbaar maken. Staat er een waarde naast waar ze op twee
+       cijfers niet van te onderscheiden is, dan worden er meer cijfers
+       getoond — anders leest een melding als 'daar staat 10,88, verwacht
+       10,88' en begrijpt niemand er iets van."""
+    if not isinstance(x, float):
+        return str(x)
+    cijfers = 2
+    if isinstance(naast, (int, float)):
+        while cijfers < 6 and f'{x:.{cijfers}f}' == f'{float(naast):.{cijfers}f}' \
+                and abs(x - naast) > TOLERANTIE:
+            cijfers += 1
+    return f'{x:.{cijfers}f}'.rstrip('0').rstrip('.').replace('.', ',')
 
 
 def kijk_regel(wb_f, wb_w, blad, regel):
@@ -86,12 +136,12 @@ def kijk_regel(wb_f, wb_w, blad, regel):
     deel = len(telt_mee) / n
     if deel == 1:
         punten = regel['punten']
-    elif deel >= 0.7:
-        punten = round(regel['punten'] * deel * 2) / 2
-    elif deel > 0:
-        punten = round(regel['punten'] * deel * 2) / 2
     else:
-        punten = 0
+        # Naar beneden afronden op een half punt, en nooit het maximum: wie
+        # één cel fout heeft, hoort niet alles te krijgen. Bij een opdracht
+        # van één punt betekent dat een half punt of niets.
+        punten = min(int(regel['punten'] * deel * 2) / 2, regel['punten'] - 0.5)
+        punten = max(punten, 0)
 
     if leeg and len(leeg) == n:
         opmerking = 'niet gemaakt'
@@ -106,17 +156,35 @@ def kijk_regel(wb_f, wb_w, blad, regel):
             eerste = fout[0]
             gekregen = wb_w[blad][eerste].value
             idx = regel['cellen'].index(eerste)
-            stuk.append(f'fout vanaf {eerste} (daar staat {toon(gekregen)}, verwacht '
-                        f"{toon(regel['waarden'][idx])})")
+            verwacht = regel['waarden'][idx]
+            stuk.append(f'fout vanaf {eerste} (daar staat '
+                        f'{toon(gekregen, verwacht)}, verwacht '
+                        f'{toon(verwacht, gekregen)})')
         if leeg:
             stuk.append(f'{len(leeg)} cel(len) leeg')
         opmerking = '; '.join(stuk)
 
+    eerste_formule = fs[regel['cellen'][0]].value
+    # Een doorgevoerde formule hoort haar bereik vast te zetten. Wie dat niet
+    # doet, kan toch het juiste antwoord krijgen als de gegevens toevallig
+    # netjes gegroepeerd staan. Dat is het vermelden waard: bij een andere
+    # volgorde loopt het mis.
+    schuift = (n > 1 and '$' in (regel['formule'] or '')
+               and isinstance(eerste_formule, str) and '$' not in eerste_formule)
+    # Waar is de gevraagde functie blijven liggen? Niet overal: soms is een
+    # andere functie even juist. Daarom een melding, geen aftrek.
+    zonder_functie = [c for c in regel['cellen']
+                      if isinstance(fs[c].value, str)
+                      and not gebruikt_functie(fs[c].value, regel['functie'])]
+
     return dict(waar=regel['waar'], wat=regel['wat'], functie=regel['functie'],
                 max=regel['punten'], punten=punten, aantal=n, juist=len(telt_mee),
-                fout=fout[:4], leeg=len(leeg), zonder_formule=zonder_formule[:4],
+                fout=fout[:4], alle_fout=fout, leeg=len(leeg),
+                zonder_formule=zonder_formule[:4],
+                zonder_functie=zonder_functie[:4], schuift=schuift,
                 opmerking=opmerking,
-                formule=fs[regel['cellen'][0]].value)
+                formules={c: fs[c].value for c in regel['cellen']},
+                formule=eerste_formule)
 
 
 # ---------------------------------------------------------------- opmaak
@@ -170,6 +238,18 @@ def notatie(ws, bereik, soort):
             return '#,##' in n or '# ##' in n
         raise ValueError(soort)
     return all(past(c) for c in cellen(bereik))
+
+
+def vw_elders(ws, bereik):
+    """Staat er wel voorwaardelijke opmaak op het blad, maar op een ander
+       bereik? Dan is 'ontbreekt' een misleidende melding."""
+    if vw_opmaak(ws, bereik):
+        return ''
+    elders = [str(r.sqref) for r in ws.conditional_formatting]
+    if not elders:
+        return ''
+    return (f'er staat wel voorwaardelijke opmaak op dit blad, maar op '
+            f'{", ".join(elders)} in plaats van op {bereik}')
 
 
 def vw_opmaak(ws, bereik):
@@ -262,20 +342,64 @@ def kijk_opmaak(wb_f, blad, nr):
              ('kolom D gecentreerd', gecentreerd(ws, 'D4:D14'))],
         ]
 
-    opmerkingen = []
+    VW_BEREIK = {1: 'D5:D26', 2: 'G4:G11', 3: 'C4:C19'}
+    bij_eis = {}
     if nr == 1:
         _, melding = blokkade(ws, 5)
         if melding:
-            opmerkingen.append(melding)
+            bij_eis[1] = melding
+    if nr in VW_BEREIK:
+        melding = vw_elders(ws, VW_BEREIK[nr])
+        if melding:
+            bij_eis[{1: 2, 2: 1, 3: 2}[nr]] = melding
 
     uit = []
     for i, ((eis, punten), deelcontroles) in enumerate(zip(eisen, controles)):
         deel, gelukt, gemist = score(deelcontroles)
-        uit.append(dict(eis=eis, max=punten, punten=round(punten * deel * 2) / 2,
+        if deel == 1:
+            behaald = punten
+        else:
+            behaald = max(min(int(punten * deel * 2 + 1e-9) / 2, punten - 0.5), 0)
+        uit.append(dict(eis=eis, max=punten, punten=behaald,
                         gelukt=gelukt, gemist=gemist,
-                        opmerking=opmerkingen[0] if (opmerkingen and i == 1
-                                                     and nr == 1) else ''))
+                        opmerking=bij_eis.get(i, '')))
     return uit
+
+
+def doorwerkend(regels):
+    """Een fout die doorwerkt één keer aanrekenen, niet twee keer.
+
+    Wie op blad 4 vergeet af te ronden, krijgt een verkeerde kolom C én een
+    verkeerd totaal in C14. Dat totaal is dan niet nog eens fout: de formule
+    klopt, de invoer niet. Staat dat ook zo in de verbetersleutel.
+
+    Een cel heet doorwerkend als ze verwijst naar een cel die bij een ANDERE
+    opdracht van hetzelfde blad al fout gerekend is. Zijn alle foute cellen
+    van een opdracht doorwerkend, dan komen de punten terug.
+    """
+    for regel in regels:
+        regel['doorwerkend'] = False
+    for regel in regels:
+        if not regel['alle_fout'] or regel['punten'] == regel['max']:
+            continue
+        elders_fout = {c for ander in regels if ander is not regel
+                       for c in ander['alle_fout']}
+        if not elders_fout:
+            continue
+        oorzaken = set()
+        for cel in regel['alle_fout']:
+            geraakt = verwezen_cellen(regel['formules'].get(cel)) & elders_fout
+            if not geraakt:
+                break
+            oorzaken |= geraakt
+        else:
+            regel['doorwerkend'] = True
+            regel['punten'] = regel['max']
+            regel['opmerking'] = (
+                'de formule klopt, maar rekent verder op een fout die hierboven al '
+                f'is aangerekend ({", ".join(sorted(oorzaken)[:3])}) — daarom hier '
+                'geen aftrek')
+    return regels
 
 
 # ------------------------------------------------------------------ main
@@ -289,6 +413,7 @@ def nakijken(pad, naam):
     bladen = []
     for blad, info in v.PER_BLAD.items():
         regels = [kijk_regel(wb_f, wb_w, blad, r) for r in info['regels']]
+        doorwerkend(regels)
         opmaak = kijk_opmaak(wb_f, blad, info['nr'])
         bladen.append(dict(
             nr=info['nr'], blad=blad, regels=regels, opmaak=opmaak,
@@ -331,6 +456,12 @@ if __name__ == '__main__':
                   f"{x['opmerking']}")
             if x['formule']:
                 print(f"              {x['formule']}")
+            if x['zonder_functie']:
+                print(f"              let op: {x['functie']} ontbreekt in "
+                      f"{', '.join(x['zonder_functie'])}")
+            if x['schuift'] and x['punten'] == x['max']:
+                print('              let op: het bereik staat niet vast en schuift mee '
+                      'bij het doorvoeren — hier kwam het toevallig goed uit')
         for e in b['opmaak']:
             vlag = ' ' if e['punten'] == e['max'] else '!'
             tekort = ('; mist: ' + ', '.join(e['gemist'])) if e['gemist'] else ''
