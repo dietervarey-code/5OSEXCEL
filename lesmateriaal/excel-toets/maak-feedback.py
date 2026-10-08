@@ -135,6 +135,15 @@ def werkpunten(r):
     """Wat er misliep, met het celadres erbij zodat hij het kan terugzoeken."""
     uit = []
     for b in r['bladen']:
+        onaangeroerd = all(x['opmerking'].startswith('niet gemaakt')
+                           for x in b['regels'])
+        if onaangeroerd:
+            # Zeven keer 'niet gemaakt' onder elkaar helpt niemand vooruit.
+            uit.append(f"Blad {b['nr']} ({b['blad']}) is niet gemaakt. Daar liggen "
+                       f"{b['formulemax'] + b['opmaakmax']} punten, de volledige "
+                       f"waarde van het blad. Je bent er wellicht niet aan toe "
+                       f"gekomen.")
+            continue
         for x in b['regels']:
             if x['punten'] == x['max']:
                 continue

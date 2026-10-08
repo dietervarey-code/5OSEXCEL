@@ -130,6 +130,17 @@ def kijk_regel(wb_f, wb_w, blad, regel):
         else:
             fout.append(cel)
 
+    # Een ALS-kolom met twee mogelijke uitkomsten kan helemaal omgekeerd
+    # staan. Dan is 'fout vanaf de eerste rij' een nutteloze melding: wat hij
+    # moet horen is dat hij de twee antwoorden verwisseld heeft.
+    omgewisseld = False
+    mogelijk = sorted({str(x) for x in regel['waarden']})
+    if len(mogelijk) == 2 and len(fout) > len(juist):
+        andersom = {mogelijk[0]: mogelijk[1], mogelijk[1]: mogelijk[0]}
+        raak = sum(1 for cel, verwacht in zip(regel['cellen'], regel['waarden'])
+                   if gelijk(ws[cel].value, andersom.get(str(verwacht))))
+        omgewisseld = raak / len(regel['cellen']) >= 0.9
+
     n = len(regel['cellen'])
     # Alleen cellen met een formule EN het juiste antwoord tellen mee.
     telt_mee = [c for c in juist if c not in zonder_formule]
@@ -145,6 +156,10 @@ def kijk_regel(wb_f, wb_w, blad, regel):
 
     if leeg and len(leeg) == n:
         opmerking = 'niet gemaakt'
+    elif omgewisseld:
+        opmerking = (f'de twee antwoorden staan omgewisseld: overal waar '
+                     f'"{mogelijk[0]}" hoort staat "{mogelijk[1]}" en omgekeerd. '
+                     'Je vergelijking staat de verkeerde kant op')
     elif zonder_formule and not [c for c in zonder_formule if c in fout]:
         opmerking = (f'het antwoord klopt, maar in {len(zonder_formule)} cel(len) staat '
                      f'een ingetypt getal in plaats van een formule')
@@ -181,7 +196,9 @@ def kijk_regel(wb_f, wb_w, blad, regel):
                 max=regel['punten'], punten=punten, aantal=n, juist=len(telt_mee),
                 fout=fout[:4], alle_fout=fout, leeg=len(leeg),
                 zonder_formule=zonder_formule[:4],
-                zonder_functie=zonder_functie[:4], schuift=schuift,
+                zonder_functie=zonder_functie[:4],
+                aantal_zonder_functie=len(zonder_functie), schuift=schuift,
+                omgewisseld=omgewisseld,
                 opmerking=opmerking,
                 formules={c: fs[c].value for c in regel['cellen']},
                 formule=eerste_formule)
@@ -192,20 +209,33 @@ def cellen(bereik):
     return v.cellen_van(bereik)
 
 
+def gevulde_cellen(ws, bereik):
+    """Alleen de cellen waar iets in staat.
+
+    Een opmaakeis als 'B5:D14 in valuta' slaat op de getallen, niet op de
+    lege tussenrij die daar toevallig in valt. Wie het blok netjes opmaakt
+    maar die lege rij overslaat, doet precies wat gevraagd is.
+    """
+    return [c for c in cellen(bereik) if ws[c].value is not None]
+
+
+def _over_gevulde(ws, bereik, test):
+    doel = gevulde_cellen(ws, bereik)
+    return bool(doel) and all(test(ws[c]) for c in doel)
+
+
 def vet(ws, bereik):
-    return all(ws[c].font and ws[c].font.bold for c in cellen(bereik))
+    return _over_gevulde(ws, bereik, lambda cel: cel.font and cel.font.bold)
 
 
 def vulling(ws, bereik):
-    def gevuld(c):
-        f = ws[c].fill
-        return bool(f and f.fill_type and f.fill_type != 'none')
-    return all(gevuld(c) for c in cellen(bereik))
+    return _over_gevulde(ws, bereik, lambda cel: bool(
+        cel.fill and cel.fill.fill_type and cel.fill.fill_type != 'none'))
 
 
 def gecentreerd(ws, bereik):
-    return all(ws[c].alignment and ws[c].alignment.horizontal == 'center'
-               for c in cellen(bereik))
+    return _over_gevulde(ws, bereik, lambda cel: bool(
+        cel.alignment and cel.alignment.horizontal == 'center'))
 
 
 def rand_rond(ws, bereik):
@@ -237,7 +267,8 @@ def notatie(ws, bereik, soort):
         if soort == 'duizend':
             return '#,##' in n or '# ##' in n
         raise ValueError(soort)
-    return all(past(c) for c in cellen(bereik))
+    doel = gevulde_cellen(ws, bereik)
+    return bool(doel) and all(past(c) for c in doel)
 
 
 def vw_elders(ws, bereik):
@@ -457,8 +488,11 @@ if __name__ == '__main__':
             if x['formule']:
                 print(f"              {x['formule']}")
             if x['zonder_functie']:
+                meer = ('…' if x['aantal_zonder_functie'] > len(x['zonder_functie'])
+                        else '')
                 print(f"              let op: {x['functie']} ontbreekt in "
-                      f"{', '.join(x['zonder_functie'])}")
+                      f"{x['aantal_zonder_functie']} cel(len): "
+                      f"{', '.join(x['zonder_functie'])}{meer}")
             if x['schuift'] and x['punten'] == x['max']:
                 print('              let op: het bereik staat niet vast en schuift mee '
                       'bij het doorvoeren — hier kwam het toevallig goed uit')
