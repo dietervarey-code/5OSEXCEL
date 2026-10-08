@@ -11,6 +11,8 @@ en `controleer.py` faalt zodra opdracht, startbestand en sleutel uit elkaar lope
 | `excel-herhaling-2/` | idem, zelfde opbouw, andere wereld | wie na de eerste herhaling nog oefening nodig heeft | 40 min |
 | `excel-uitdaging/` | Halloween-moordzaak, nieuwe functies, geneste formules | de sterkste leerlingen | 40 min |
 | `excel-toets/` | synthesetoets op de basisfuncties, Rode Duivels | iedereen, als evaluatie | 50 min |
+| `excel-slimste-mens/` | zelfstudiebundel op SOM, AANTAL.ALS en VERT.ZOEKEN | wie het nog niet vast heeft | 40 min |
+| `excel-detective/` | vijf losse zaken, elk met één geneste functie | wie toe is aan iets meer | 5 × 25 min |
 | `moordzaak/` | detectivespel met Excel én papieren verhaallijn | hele klas, als spel | 50 min |
 
 ## Welke bundel hoort bij welke
@@ -27,6 +29,11 @@ en `controleer.py` faalt zodra opdracht, startbestand en sleutel uit elkaar lope
 - **`excel-toets`** is de evaluatie op `excel-basis`: alle tien de functies en alle vijf
   de hulpfiches in één bundel, op 50 punten. Hier staat géén formule in de opdracht, en
   de functiefiches gaan er niet bij.
+- **`excel-slimste-mens` en `excel-detective` zijn gemaakt om alleen af te werken**,
+  zonder leerkracht in de buurt. Daarom geven ze elke gewone formule letterlijk, heeft
+  elk onderdeel een controlegetal of een proef, en staat er overal een lijstje "Loop je
+  vast?" bij. De detectivezaken zijn de lichtere tegenhanger van `excel-uitdaging`: de
+  moeilijkheid zit daar op één plaats per zaak in plaats van overal.
 - **`moordzaak`** is een spel, geen oefening op functies. Het kan op elk moment.
 
 ## Alles opnieuw bouwen
@@ -34,7 +41,7 @@ en `controleer.py` faalt zodra opdracht, startbestand en sleutel uit elkaar lope
 ```bash
 pip install openpyxl python-docx pillow
 for d in excel-basis excel-herhaling excel-herhaling-2 excel-uitdaging \
-         excel-toets moordzaak; do
+         excel-toets excel-slimste-mens excel-detective moordzaak; do
   (cd $d && for f in antwoorden.py maak-*.py controleer.py; do
      [ -f "$f" ] && python3 "$f" > /dev/null || true; done && echo "$d ok")
 done
