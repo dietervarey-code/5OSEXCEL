@@ -131,6 +131,16 @@ def sterk(r):
     elif functies:
         uit.append('Juist gebruikt: ' + ', '.join(functies) + '.')
 
+    matrix = [(b, x) for b in r['bladen'] for x in b['regels']
+              if x.get('matrix') and x['punten'] == x['max']]
+    if matrix:
+        waar = ', '.join(f"blad {b['nr']} {x['waar']}" for b, x in matrix)
+        uit.append(f'Je hebt matrixformules gebruikt ({waar}): één formule die het hele '
+                   'bereik in één keer vult, zonder doorvoeren. Dat zat niet in de les. '
+                   'Het werkt hier en het is knap, maar weet dat het alleen in recente '
+                   'versies van Excel bestaat — op een toestel met een oudere versie '
+                   'krijg je er een foutmelding mee.')
+
     # Wie weinig haalde, hoort toch te weten wat zijn stevigste antwoord was.
     zwaar = [(b, x) for b in r['bladen'] for x in b['regels']
              if x['punten'] == x['max'] and x['max'] >= 2]

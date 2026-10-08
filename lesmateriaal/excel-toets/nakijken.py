@@ -23,6 +23,7 @@ import re
 import sys
 import importlib.util
 from openpyxl import load_workbook
+from openpyxl.worksheet.formula import ArrayFormula
 
 sys.dont_write_bytecode = True
 
@@ -61,6 +62,37 @@ def gebruikt_functie(formule, functie):
     if not engels:
         return True
     return re.search(rf'\b{re.escape(engels)}\s*\(', formule.upper()) is not None
+
+
+def spilkaart(ws):
+    """Welke cellen worden gevuld door een matrixformule elders?
+
+    Een dynamische matrixformule (de 'spill' van Excel 365) staat maar in één
+    cel; de rest van het bereik vult zichzelf. openpyxl geeft in die andere
+    cellen alleen de uitkomst terug, en zonder deze kaart lijkt het alsof de
+    leerling daar getallen heeft ingetypt. Dat is hij net niet.
+    """
+    kaart = {}
+    for rij in ws.iter_rows():
+        for cel in rij:
+            if not isinstance(cel.value, ArrayFormula):
+                continue
+            tekst = cel.value.text or ''
+            for c in cellen_van_veilig(str(cel.value.ref)):
+                kaart[c] = (tekst, cel.coordinate)
+    return kaart
+
+
+def formule_van(ws, cel, spill):
+    """De formule achter een cel, als tekst. None als er geen formule is."""
+    waarde = ws[cel].value
+    if isinstance(waarde, ArrayFormula):
+        return waarde.text or ''
+    if isinstance(waarde, str) and waarde.startswith('='):
+        return waarde
+    if cel in spill:
+        return spill[cel][0]
+    return None
 
 
 def kaal(formule):
@@ -129,14 +161,14 @@ def toon(x, naast=None):
     return f'{x:.{cijfers}f}'.rstrip('0').rstrip('.').replace('.', ',')
 
 
-def kijk_regel(wb_f, wb_w, blad, regel):
+def kijk_regel(wb_f, wb_w, blad, regel, spill):
     """Eén opdrachtcel of doorgevoerde kolom nakijken."""
     fs, ws = wb_f[blad], wb_w[blad]
     juist, zonder_formule, leeg, fout = [], [], [], []
     for cel, verwacht in zip(regel['cellen'], regel['waarden']):
-        formule = fs[cel].value
+        formule = formule_van(fs, cel, spill)
         waarde = ws[cel].value
-        heeft_formule = isinstance(formule, str) and formule.startswith('=')
+        heeft_formule = formule is not None
         if formule is None and waarde is None:
             leeg.append(cel)
         elif not heeft_formule:
@@ -197,21 +229,24 @@ def kijk_regel(wb_f, wb_w, blad, regel):
             stuk.append(f'{len(leeg)} cel(len) leeg')
         opmerking = '; '.join(stuk)
 
-    eerste_formule = fs[regel['cellen'][0]].value
+    formules = {c: formule_van(fs, c, spill) for c in regel['cellen']}
+    eerste_formule = formules[regel['cellen'][0]]
     # Een doorgevoerde formule hoort haar bereik vast te zetten. Wie dat niet
     # doet, kan toch het juiste antwoord krijgen als de gegevens toevallig
     # netjes gegroepeerd staan. Dat is het vermelden waard: bij een andere
     # volgorde loopt het mis.
-    schuift = (n > 1 and '$' in (regel['formule'] or '')
+    # Een matrixformule wordt niet doorgevoerd: ze staat één keer en vult zelf
+    # het hele bereik. Praten over een bereik dat meeschuift slaat dan nergens
+    # op.
+    is_matrix = any(c in spill for c in regel['cellen'])
+    schuift = (n > 1 and not is_matrix and '$' in (regel['formule'] or '')
                and isinstance(eerste_formule, str) and '$' not in eerste_formule)
     # Waar is de gevraagde functie blijven liggen? Niet overal: soms is een
     # andere functie even juist. Daarom een melding, geen aftrek.
-    zonder_functie = [c for c in regel['cellen']
-                      if isinstance(fs[c].value, str)
-                      and not gebruikt_functie(fs[c].value, regel['functie'])]
+    zonder_functie = [c for c in regel['cellen'] if formules[c]
+                      and not gebruikt_functie(formules[c], regel['functie'])]
 
-    handmatig = n > 1 and losse_formules(
-        {c: fs[c].value for c in regel['cellen']}, regel['cellen'])
+    handmatig = n > 1 and losse_formules(formules, regel['cellen'])
 
     return dict(waar=regel['waar'], wat=regel['wat'], functie=regel['functie'],
                 max=regel['punten'], punten=punten, aantal=n, juist=len(telt_mee),
@@ -221,8 +256,8 @@ def kijk_regel(wb_f, wb_w, blad, regel):
                 aantal_zonder_functie=len(zonder_functie), schuift=schuift,
                 omgewisseld=omgewisseld, handmatig=handmatig,
                 opmerking=opmerking,
-                formules={c: fs[c].value for c in regel['cellen']},
-                formule=eerste_formule)
+                formules=formules, formule=eerste_formule,
+                matrix=is_matrix)
 
 
 # ---------------------------------------------------------------- opmaak
@@ -471,7 +506,8 @@ def nakijken(pad, naam):
 
     bladen = []
     for blad, info in v.PER_BLAD.items():
-        regels = [kijk_regel(wb_f, wb_w, blad, r) for r in info['regels']]
+        spill = spilkaart(wb_f[blad])
+        regels = [kijk_regel(wb_f, wb_w, blad, r, spill) for r in info['regels']]
         doorwerkend(regels)
         opmaak = kijk_opmaak(wb_f, blad, info['nr'])
         bladen.append(dict(
@@ -521,6 +557,9 @@ if __name__ == '__main__':
                 print(f"              let op: {x['functie']} ontbreekt in "
                       f"{x['aantal_zonder_functie']} cel(len): "
                       f"{', '.join(x['zonder_functie'])}{meer}")
+            if x['matrix']:
+                print('              let op: matrixformule — één formule die het hele '
+                      'bereik vult')
             if x['handmatig'] and x['punten'] == x['max']:
                 print('              let op: losse formules per rij in plaats van er '
                       'één doorvoeren')
