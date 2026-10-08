@@ -217,7 +217,18 @@ def kijk_regel(wb_f, wb_w, blad, regel, spill):
         opmerking = 'juist'
     else:
         stuk = []
-        if fout:
+        if len(fout) == 1 and n > 1:
+            # Eén rij van de twintig fout is iets anders dan een kolom die
+            # overal misloopt. Bij een ALS is dat bijna altijd het grensgeval.
+            cel = fout[0]
+            idx = regel['cellen'].index(cel)
+            extra = (' Kijk naar je vergelijking: moet daar > of >= staan?'
+                     if regel['functie'] == 'ALS' else '')
+            opmerking = (f'één van de {n} staat fout: {cel} geeft '
+                         f"{toon(ws[cel].value, regel['waarden'][idx])}, verwacht "
+                         f"{toon(regel['waarden'][idx], ws[cel].value)}.{extra}")
+            stuk = None
+        if stuk is not None and fout:
             eerste = fout[0]
             gekregen = wb_w[blad][eerste].value
             idx = regel['cellen'].index(eerste)
@@ -225,9 +236,10 @@ def kijk_regel(wb_f, wb_w, blad, regel, spill):
             stuk.append(f'fout vanaf {eerste} (daar staat '
                         f'{toon(gekregen, verwacht)}, verwacht '
                         f'{toon(verwacht, gekregen)})')
-        if leeg:
-            stuk.append(f'{len(leeg)} cel(len) leeg')
-        opmerking = '; '.join(stuk)
+        if stuk is not None:
+            if leeg:
+                stuk.append(f'{len(leeg)} cel(len) leeg')
+            opmerking = '; '.join(stuk)
 
     formules = {c: formule_van(fs, c, spill) for c in regel['cellen']}
     eerste_formule = formules[regel['cellen'][0]]
@@ -239,8 +251,15 @@ def kijk_regel(wb_f, wb_w, blad, regel, spill):
     # het hele bereik. Praten over een bereik dat meeschuift slaat dan nergens
     # op.
     is_matrix = any(c in spill for c in regel['cellen'])
+    # Een bereik zonder dollartekens hoeft niet mee te schuiven: wie zijn
+    # formules per cel intypt, kan overal hetzelfde bereik zetten. Pas als het
+    # bereik tussen de eerste en de laatste cel echt verschilt, is er iets
+    # geschoven dat vast had moeten staan.
+    eerst = verwezen_cellen(eerste_formule)
+    laatst = verwezen_cellen(formules[regel['cellen'][-1]])
     schuift = (n > 1 and not is_matrix and '$' in (regel['formule'] or '')
-               and isinstance(eerste_formule, str) and '$' not in eerste_formule)
+               and isinstance(eerste_formule, str) and '$' not in eerste_formule
+               and eerst != laatst)
     # Waar is de gevraagde functie blijven liggen? Niet overal: soms is een
     # andere functie even juist. Daarom een melding, geen aftrek.
     zonder_functie = [c for c in regel['cellen'] if formules[c]
