@@ -56,6 +56,36 @@ rond geraakt, kan blad 5 laten vallen zonder de rest te verliezen.
   berekening hetzelfde antwoord geven — op een toets mag de sleutel daar niet van
   afhangen. `controleer.py` bewaakt dat.
 
+## De ingeleverde toetsen nakijken
+
+```bash
+python3 -I nakijken.py <inzending.xlsx> "<naam van de leerling>"   # toont + schrijft JSON
+python3 -I maak-feedback.py <naam>.json                            # maakt de feedbackfiche
+```
+
+`nakijken.py` kijkt per cel twee dingen na: **staat er een formule in** (en geen
+overgetypt getal) en **klopt de uitkomst**. Allebei nodig voor de punten. Een
+doorgevoerde kolom krijgt deelpunten naar verhouding, afgerond op een half punt.
+
+Wat het met opzet **niet** afstraft:
+
+- **Engelse functienamen.** Een xlsx bewaart elke formule in het Engels (`SUM`, `IF`,
+  `VLOOKUP`), ook als de leerling `SOM` typte. Uit het bestand is niet te zien welke
+  taal hij gebruikte, dus daar valt niet op te quoteren.
+- **Een andere maar werkende formule.** Er wordt op de uitkomst gekeken, niet op de
+  letterlijke tekst. `=AANTAL(C5:C26)` en `=AANTAL(D5:D26)` zijn allebei goed.
+- **Hoofdletters** in ja/nee: Excel vergelijkt zelf ook zonder onderscheid.
+- **`B$2` in plaats van `$B$2`.** Wie een kolom naar beneden doorvoert, heeft aan een
+  vaste rij genoeg. De uitkomst bewijst of het werkt.
+
+Van de 13 opmaakpunten kijkt het script er alles na wat in het bestand te lezen is:
+vet, achtergrondkleur, uitlijning, randen, getalnotatie, voorwaardelijke opmaak en
+geblokkeerde titels. Waar het twijfelt zet het een opmerking in plaats van een aftrek —
+die beslissing blijft bij jou.
+
+> **Zet ingeleverde bestanden en feedbackfiches niet in deze repository.** Ze bevatten
+> namen van leerlingen en de repo is publiek. Houd ze in een map buiten de repo.
+
 ## De bestanden opnieuw maken
 
 ```bash
