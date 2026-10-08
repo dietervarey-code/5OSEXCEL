@@ -177,8 +177,9 @@ def werkpunten(r):
         for x in b['regels']:
             if x['punten'] == x['max']:
                 continue
+            melding = x['opmerking'].rstrip('.')
             uit.append(f"Blad {b['nr']} ({b['blad']}), {x['waar']} — {x['wat']}: "
-                       f"{x['opmerking']}. ({getal(x['punten'])} van de {x['max']})")
+                       f"{melding}. ({getal(x['punten'])} van de {x['max']})")
         for e in b['opmaak']:
             if e['punten'] == e['max']:
                 continue
@@ -198,6 +199,13 @@ def opmerkingen(r):
         for x in b['regels']:
             if x.get('doorwerkend'):
                 uit.append(f"Blad {b['nr']}, {x['waar']}: {x['opmerking']}.")
+            if x.get('aantal_spaties'):
+                uit.append(
+                    f"Blad {b['nr']}, {x['waar']}: in {x['aantal_spaties']} cellen staat "
+                    'een spatie achter het woord ("ja " in plaats van "ja"). In de cel '
+                    'zie je dat niet, maar AANTAL.ALS zoekt letterlijk en vindt ze dan '
+                    'niet meer — die telling blijft op 0 staan. Haal de spatie uit je '
+                    'formule weg.')
             if x.get('handmatig') and x['punten'] == x['max']:
                 # Bij AANTAL.ALS en SOM.ALS komt het criterium uit een cel; bij
                 # een gewone som voer je gewoon door. Twee verschillende raden.

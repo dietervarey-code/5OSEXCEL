@@ -183,9 +183,21 @@ def kijk_regel(wb_f, wb_w, blad, regel, spill):
     # Een ALS-kolom met twee mogelijke uitkomsten kan helemaal omgekeerd
     # staan. Dan is 'fout vanaf de eerste rij' een nutteloze melding: wat hij
     # moet horen is dat hij de twee antwoorden verwisseld heeft.
-    omgewisseld = False
+    # Soms is een kolom niet fout gerekend maar anders benoemd: "gewonnen"
+    # in plaats van "ja". Dat telt niet als juist — de opdracht vraagt die
+    # woorden, en de telling erna zoekt ze letterlijk — maar het is iets
+    # anders dan een rekenfout en hoort als zodanig benoemd te worden.
+    andere_woorden = []
     mogelijk = sorted({str(x) for x in regel['waarden']})
-    if len(mogelijk) == 2 and len(fout) > len(juist):
+    if len(mogelijk) == 2:
+        verwacht_klein = {m.strip().lower() for m in mogelijk}
+        gebruikt = {str(ws[c].value).strip().lower() for c in regel['cellen']
+                    if isinstance(ws[c].value, str) and ws[c].value.strip()}
+        if gebruikt and not (gebruikt & verwacht_klein):
+            andere_woorden = sorted(gebruikt)
+
+    omgewisseld = False
+    if len(mogelijk) == 2 and not andere_woorden and len(fout) > len(juist):
         andersom = {mogelijk[0]: mogelijk[1], mogelijk[1]: mogelijk[0]}
         raak = sum(1 for cel, verwacht in zip(regel['cellen'], regel['waarden'])
                    if gelijk(ws[cel].value, andersom.get(str(verwacht))))
@@ -206,6 +218,11 @@ def kijk_regel(wb_f, wb_w, blad, regel, spill):
 
     if leeg and len(leeg) == n:
         opmerking = 'niet gemaakt'
+    elif andere_woorden:
+        opmerking = (f'je gebruikt andere woorden dan gevraagd: '
+                     f'{", ".join(andere_woorden)} in plaats van '
+                     f'{" en ".join(mogelijk)}. De opdracht vraagt die twee woorden, '
+                     'en de telling verderop zoekt er letterlijk naar')
     elif omgewisseld:
         opmerking = (f'de twee antwoorden staan omgewisseld: overal waar '
                      f'"{mogelijk[0]}" hoort staat "{mogelijk[1]}" en omgekeerd. '
@@ -267,6 +284,14 @@ def kijk_regel(wb_f, wb_w, blad, regel, spill):
 
     handmatig = n > 1 and losse_formules(formules, regel['cellen'])
 
+    # Tekst met een spatie erachter ziet er in de cel hetzelfde uit, maar
+    # AANTAL.ALS vindt ze niet meer. Dat kost hier geen punten en verklaart
+    # verderop vaak een telling die op nul blijft staan.
+    spaties = [c for c, verwacht in zip(regel['cellen'], regel['waarden'])
+               if isinstance(ws[c].value, str) and isinstance(verwacht, str)
+               and ws[c].value != ws[c].value.strip()
+               and ws[c].value.strip().lower() == str(verwacht).strip().lower()]
+
     return dict(waar=regel['waar'], wat=regel['wat'], functie=regel['functie'],
                 max=regel['punten'], punten=punten, aantal=n, juist=len(telt_mee),
                 fout=fout[:4], alle_fout=fout, leeg=len(leeg),
@@ -274,6 +299,8 @@ def kijk_regel(wb_f, wb_w, blad, regel, spill):
                 zonder_functie=zonder_functie[:4],
                 aantal_zonder_functie=len(zonder_functie), schuift=schuift,
                 omgewisseld=omgewisseld, handmatig=handmatig,
+                andere_woorden=andere_woorden, spaties=spaties[:3],
+                aantal_spaties=len(spaties),
                 opmerking=opmerking,
                 cellen=regel['cellen'], formules=formules, formule=eerste_formule,
                 matrix=is_matrix)
@@ -586,6 +613,10 @@ if __name__ == '__main__':
                 print(f"              let op: {x['functie']} ontbreekt in "
                       f"{x['aantal_zonder_functie']} cel(len): "
                       f"{', '.join(x['zonder_functie'])}{meer}")
+            if x['aantal_spaties']:
+                print(f"              let op: in {x['aantal_spaties']} cel(len) staat "
+                      'een spatie achter de tekst — onzichtbaar, maar AANTAL.ALS '
+                      'vindt ze dan niet')
             if x['matrix']:
                 print('              let op: matrixformule — één formule die het hele '
                       'bereik vult')
