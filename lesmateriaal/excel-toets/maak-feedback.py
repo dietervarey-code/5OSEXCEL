@@ -188,6 +188,13 @@ def opmerkingen(r):
         for x in b['regels']:
             if x.get('doorwerkend'):
                 uit.append(f"Blad {b['nr']}, {x['waar']}: {x['opmerking']}.")
+            if x.get('handmatig') and x['punten'] == x['max']:
+                uit.append(
+                    f"Blad {b['nr']}, {x['waar']}: je antwoord klopt, maar je hebt per "
+                    'rij een aparte formule getypt in plaats van er één door te voeren. '
+                    'Dat werkt, maar het is veel meer werk en bij elke tikfout gaat er '
+                    'één rij mis zonder dat je het ziet. Verwijs naar de cel ernaast als '
+                    'criterium, dan volstaat één formule.')
             if x.get('schuift') and x['punten'] == x['max']:
                 uit.append(
                     f"Blad {b['nr']}, {x['waar']}: je antwoord klopt, maar je bereik "
@@ -209,6 +216,11 @@ def grootste_oorzaak(r):
        die over deze leerling gaat en niet over zijn cijfer."""
     verlies = {'opmaak': 0.0, 'getypt': 0.0, 'niet gemaakt': 0.0, 'formules': 0.0}
     for b in r['bladen']:
+        # Een blad dat hij niet gehaald heeft, zegt niets over zijn werkwijze.
+        # Dat staat al apart in de werkpunten; het advies moet gaan over wat
+        # hij wél aanraakte.
+        if all(x['opmerking'].startswith('niet gemaakt') for x in b['regels']):
+            continue
         for e in b['opmaak']:
             verlies['opmaak'] += e['max'] - e['punten']
         for x in b['regels']:
@@ -248,6 +260,11 @@ def slotzin(r):
     oorzaak, verlies = grootste_oorzaak(r)
     onaf = [b for b in r['bladen']
             if all(x['opmerking'].startswith('niet gemaakt') for x in b['regels'])]
+    if len(onaf) == 1 and oorzaak:
+        b = onaf[0]
+        return (f'Blad {b["nr"]} heb je niet meer gehaald; dat verklaart een flink deel '
+                f'van wat je mist. Op de bladen die je wél maakte, zit je verlies ergens '
+                f'anders. ' + RAAD[oorzaak])
     if len(onaf) >= 2:
         gedaan = len(r['bladen']) - len(onaf)
         return (f'Van de vijf werkbladen heb je er {gedaan} aangeraakt. De punten die je '

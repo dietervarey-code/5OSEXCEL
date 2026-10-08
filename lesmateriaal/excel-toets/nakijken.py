@@ -63,6 +63,24 @@ def gebruikt_functie(formule, functie):
     return re.search(rf'\b{re.escape(engels)}\s*\(', formule.upper()) is not None
 
 
+def kaal(formule):
+    """Een formule zonder celadressen, zodat twee formules te vergelijken zijn
+       op hun vorm. =SOM(B5:B12) en =SOM(C5:C12) worden allebei =SOM(#:#)."""
+    if not isinstance(formule, str):
+        return ''
+    return re.sub(r'\$?[A-Z]{1,3}\$?\d{1,4}', '#', formule.upper())
+
+
+def losse_formules(formules, cellen):
+    """Zijn dit losse, met de hand getypte formules in plaats van één
+       doorgevoerde? Een doorgevoerde formule heeft overal dezelfde vorm;
+       alleen de celadressen schuiven mee. Wie per rij iets anders intypt —
+       bijvoorbeeld het criterium letterlijk — heeft een andere vorm per cel.
+    """
+    vormen = {kaal(formules.get(c)) for c in cellen if formules.get(c)}
+    return len(vormen) > 1
+
+
 def verwezen_cellen(formule):
     """Alle cellen waar een formule naar kijkt, bereiken uitgeschreven."""
     uit = set()
@@ -192,13 +210,16 @@ def kijk_regel(wb_f, wb_w, blad, regel):
                       if isinstance(fs[c].value, str)
                       and not gebruikt_functie(fs[c].value, regel['functie'])]
 
+    handmatig = n > 1 and losse_formules(
+        {c: fs[c].value for c in regel['cellen']}, regel['cellen'])
+
     return dict(waar=regel['waar'], wat=regel['wat'], functie=regel['functie'],
                 max=regel['punten'], punten=punten, aantal=n, juist=len(telt_mee),
                 fout=fout[:4], alle_fout=fout, leeg=len(leeg),
                 zonder_formule=zonder_formule[:4],
                 zonder_functie=zonder_functie[:4],
                 aantal_zonder_functie=len(zonder_functie), schuift=schuift,
-                omgewisseld=omgewisseld,
+                omgewisseld=omgewisseld, handmatig=handmatig,
                 opmerking=opmerking,
                 formules={c: fs[c].value for c in regel['cellen']},
                 formule=eerste_formule)
@@ -500,6 +521,9 @@ if __name__ == '__main__':
                 print(f"              let op: {x['functie']} ontbreekt in "
                       f"{x['aantal_zonder_functie']} cel(len): "
                       f"{', '.join(x['zonder_functie'])}{meer}")
+            if x['handmatig'] and x['punten'] == x['max']:
+                print('              let op: losse formules per rij in plaats van er '
+                      'één doorvoeren')
             if x['schuift'] and x['punten'] == x['max']:
                 print('              let op: het bereik staat niet vast en schuift mee '
                       'bij het doorvoeren — hier kwam het toevallig goed uit')
