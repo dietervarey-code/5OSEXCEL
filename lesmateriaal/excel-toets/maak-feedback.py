@@ -128,21 +128,41 @@ def sterk(r):
                        if x['functie'] and x['punten'] == x['max']})
     if len(functies) >= 8:
         uit.append('Juist gebruikt: ' + ', '.join(functies) + '.')
+    elif functies:
+        uit.append('Juist gebruikt: ' + ', '.join(functies) + '.')
+
+    # Wie weinig haalde, hoort toch te weten wat zijn stevigste antwoord was.
+    zwaar = [(b, x) for b in r['bladen'] for x in b['regels']
+             if x['punten'] == x['max'] and x['max'] >= 2]
+    if zwaar and r['formulepunten'] < r['formulemax'] * 0.6:
+        b, x = max(zwaar, key=lambda bx: bx[1]['max'])
+        uit.append(f"Je zwaarst wegende juiste antwoord staat op blad {b['nr']}, "
+                   f"{x['waar']} — {x['wat']} ({x['max']} punten). Dat is niet het "
+                   'gemakkelijkste van de toets.')
     return uit
 
 
 def werkpunten(r):
     """Wat er misliep, met het celadres erbij zodat hij het kan terugzoeken."""
     uit = []
+    # Een blad dat helemaal niet gemaakt is, krijgt één regel in plaats van
+    # zeven keer 'niet gemaakt'. Zijn het er meerdere, dan staan ze samen in
+    # één zin: vier keer dezelfde mededeling leest als een verwijt.
+    onaf = [b for b in r['bladen']
+            if all(x['opmerking'].startswith('niet gemaakt') for x in b['regels'])]
+    if len(onaf) == 1:
+        b = onaf[0]
+        uit.append(f"Blad {b['nr']} ({b['blad']}) is niet gemaakt. Daar liggen "
+                   f"{b['formulemax'] + b['opmaakmax']} punten, de volledige waarde "
+                   'van het blad. Je bent er wellicht niet aan toe gekomen.')
+    elif onaf:
+        namen = ', '.join(f"{b['nr']} ({b['blad'].split(' ', 1)[1]})" for b in onaf)
+        samen = sum(b['formulemax'] + b['opmaakmax'] for b in onaf)
+        uit.append(f'Deze werkbladen zijn niet gemaakt: {namen}. Samen is dat {samen} '
+                   'van de 50 punten.')
+
     for b in r['bladen']:
-        onaangeroerd = all(x['opmerking'].startswith('niet gemaakt')
-                           for x in b['regels'])
-        if onaangeroerd:
-            # Zeven keer 'niet gemaakt' onder elkaar helpt niemand vooruit.
-            uit.append(f"Blad {b['nr']} ({b['blad']}) is niet gemaakt. Daar liggen "
-                       f"{b['formulemax'] + b['opmaakmax']} punten, de volledige "
-                       f"waarde van het blad. Je bent er wellicht niet aan toe "
-                       f"gekomen.")
+        if b in onaf:
             continue
         for x in b['regels']:
             if x['punten'] == x['max']:
@@ -226,6 +246,16 @@ RAAD = {
 def slotzin(r):
     deel = r['totaal'] / r['maximum']
     oorzaak, verlies = grootste_oorzaak(r)
+    onaf = [b for b in r['bladen']
+            if all(x['opmerking'].startswith('niet gemaakt') for x in b['regels'])]
+    if len(onaf) >= 2:
+        gedaan = len(r['bladen']) - len(onaf)
+        return (f'Van de vijf werkbladen heb je er {gedaan} aangeraakt. De punten die je '
+                'mist, mis je dus vooral omdat je er niet aan toe gekomen bent, en niet '
+                'omdat je het fout deed. Dat is een ander werkpunt dan je misschien '
+                'denkt: wat je maakte, maakte je grotendeels juist. Werk de '
+                'herhalingsbundel nog eens door tot de formules er vlot uit komen — '
+                'daarna haal je op dezelfde tijd veel meer bladen af.')
     # Een halve punt verlies is geen werkpunt. Dan hoort er geen raadgeving
     # bij alsof er iets scheelt.
     if verlies <= 1:

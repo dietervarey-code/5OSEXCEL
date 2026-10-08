@@ -308,6 +308,13 @@ def blokkade(ws, juiste_rij):
     rij = int(re.match(r'[A-Z]+(\d+)', str(waar)).group(1))
     if rij == juiste_rij:
         return True, ''
+    if rij < juiste_rij:
+        # Alles boven deze rij blijft staan. Ligt de blokkade bóven de koprij,
+        # dan verdwijnt die koprij alsnog zodra je scrolt: het doel is niet
+        # gehaald, ook al staat er een blokkade.
+        return False, (f'geblokkeerd op {waar}, maar de koprij staat in rij '
+                       f'{juiste_rij - 1}. Alleen de {rij - 1} rij(en) erboven blijven '
+                       f'staan, dus de koprij schuift bij het scrollen toch weg')
     return True, (f'geblokkeerd op {waar} in plaats van op A{juiste_rij} — de koprij '
                   f'blijft wel staan, maar zo scrollen de eerste {rij - 1} rijen niet mee')
 
