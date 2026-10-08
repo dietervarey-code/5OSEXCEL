@@ -256,7 +256,7 @@ def kijk_regel(wb_f, wb_w, blad, regel, spill):
                 aantal_zonder_functie=len(zonder_functie), schuift=schuift,
                 omgewisseld=omgewisseld, handmatig=handmatig,
                 opmerking=opmerking,
-                formules=formules, formule=eerste_formule,
+                cellen=regel['cellen'], formules=formules, formule=eerste_formule,
                 matrix=is_matrix)
 
 
@@ -478,11 +478,21 @@ def doorwerkend(regels):
             continue
         elders_fout = {c for ander in regels if ander is not regel
                        for c in ander['alle_fout']}
+        # Cellen van een opdracht die volledig juist staat. Haalt de formule
+        # die er ook bij, dan doet ze iets anders dan gevraagd en is ze niet
+        # alleen het slachtoffer van een fout hierboven: =SOM(B22:C25) telt
+        # de aantallen én de bedragen op, en klopt ook met een juiste kolom C
+        # niet.
+        elders_juist = {c for ander in regels if ander is not regel
+                        and not ander['alle_fout'] for c in ander['cellen']}
         if not elders_fout:
             continue
         oorzaken = set()
         for cel in regel['alle_fout']:
-            geraakt = verwezen_cellen(regel['formules'].get(cel)) & elders_fout
+            verwezen = verwezen_cellen(regel['formules'].get(cel))
+            if verwezen & elders_juist:
+                break
+            geraakt = verwezen & elders_fout
             if not geraakt:
                 break
             oorzaken |= geraakt

@@ -199,12 +199,18 @@ def opmerkingen(r):
             if x.get('doorwerkend'):
                 uit.append(f"Blad {b['nr']}, {x['waar']}: {x['opmerking']}.")
             if x.get('handmatig') and x['punten'] == x['max']:
+                # Bij AANTAL.ALS en SOM.ALS komt het criterium uit een cel; bij
+                # een gewone som voer je gewoon door. Twee verschillende raden.
+                raad = ('Verwijs naar de cel ernaast als criterium, dan volstaat één '
+                        'formule die je doorvoert.'
+                        if x['functie'] in ('AANTAL.ALS', 'SOM.ALS')
+                        else 'Typ ze één keer en sleep de vulgreep; dat kan ook '
+                             'zijwaarts.')
                 uit.append(
                     f"Blad {b['nr']}, {x['waar']}: je antwoord klopt, maar je hebt per "
-                    'rij een aparte formule getypt in plaats van er één door te voeren. '
-                    'Dat werkt, maar het is veel meer werk en bij elke tikfout gaat er '
-                    'één rij mis zonder dat je het ziet. Verwijs naar de cel ernaast als '
-                    'criterium, dan volstaat één formule.')
+                    'cel een aparte formule getypt in plaats van er één door te voeren. '
+                    'Dat werkt, maar het is meer werk en bij elke tikfout gaat er stil '
+                    'één cel mis. ' + raad)
             if x.get('schuift') and x['punten'] == x['max']:
                 uit.append(
                     f"Blad {b['nr']}, {x['waar']}: je antwoord klopt, maar je bereik "
@@ -277,12 +283,19 @@ def slotzin(r):
                 f'anders. ' + RAAD[oorzaak])
     if len(onaf) >= 2:
         gedaan = len(r['bladen']) - len(onaf)
-        return (f'Van de vijf werkbladen heb je er {gedaan} aangeraakt. De punten die je '
-                'mist, mis je dus vooral omdat je er niet aan toe gekomen bent, en niet '
-                'omdat je het fout deed. Dat is een ander werkpunt dan je misschien '
-                'denkt: wat je maakte, maakte je grotendeels juist. Werk de '
-                'herhalingsbundel nog eens door tot de formules er vlot uit komen — '
-                'daarna haal je op dezelfde tijd veel meer bladen af.')
+        behaald = sum(b['formulepunten'] + b['opmaakpunten'] for b in r['bladen']
+                      if b not in onaf)
+        haalbaar = sum(b['formulemax'] + b['opmaakmax'] for b in r['bladen']
+                       if b not in onaf)
+        sterk_bezig = haalbaar and behaald / haalbaar >= 0.8
+        kern = ('wat je maakte, maakte je grotendeels juist'
+                if sterk_bezig
+                else f'op de bladen die je wél maakte haalde je {getal(behaald)} van de '
+                     f'{haalbaar} punten')
+        return (f'Van de vijf werkbladen heb je er {gedaan} aangeraakt. Een flink deel van '
+                f'wat je mist, mis je omdat je er niet aan toe gekomen bent: {kern}. '
+                'Werk de herhalingsbundel nog eens door tot de formules er vlot uit '
+                'komen — daarna haal je op dezelfde tijd veel meer bladen af.')
     # Een halve punt verlies is geen werkpunt. Dan hoort er geen raadgeving
     # bij alsof er iets scheelt.
     if verlies <= 1:
