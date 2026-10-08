@@ -11,3 +11,8 @@ next-env.d.ts
 data/opslag.json
 klas*.csv
 __pycache__/
+
+# Ingeleverde toetsen en feedbackfiches: bevatten namen van leerlingen,
+# en deze repository is publiek. Houd ze buiten de repo.
+feedback-*.docx
+inzendingen/
