@@ -13,6 +13,8 @@ en `controleer.py` faalt zodra opdracht, startbestand en sleutel uit elkaar lope
 | `excel-toets/` | synthesetoets op de basisfuncties, Rode Duivels | iedereen, als evaluatie | 50 min |
 | `excel-slimste-mens/` | zelfstudiebundel op SOM, AANTAL.ALS en VERT.ZOEKEN | wie het nog niet vast heeft | 40 min |
 | `excel-detective/` | vijf losse zaken, elk met één geneste functie | wie toe is aan iets meer | 5 × 25 min |
+| `excel-ottomaans/` | basisfuncties, dan een draaitabel en een grafiek | hele klas, na de basis | 50 min |
+| `excel-draaitabel/` | **theoriebundel**: 14 kaarten over draaitabel en grafiek | hoort bij `excel-ottomaans` | naslag |
 | `moordzaak/` | detectivespel met Excel én papieren verhaallijn | hele klas, als spel | 50 min |
 
 ## Welke bundel hoort bij welke
@@ -34,6 +36,16 @@ en `controleer.py` faalt zodra opdracht, startbestand en sleutel uit elkaar lope
   elk onderdeel een controlegetal of een proef, en staat er overal een lijstje "Loop je
   vast?" bij. De detectivezaken zijn de lichtere tegenhanger van `excel-uitdaging`: de
   moeilijkheid zit daar op één plaats per zaak in plaats van overal.
+- **`excel-ottomaans` is de eerste bundel met een draaitabel.** Blad 1 tot 3 zijn
+  herhaling van de basisfuncties, blad 4 en 5 zijn nieuw. Blad 2 en 3 zien er met
+  opzet anders uit dan in alle vorige bundels — ze zijn bronlijst van een
+  draaitabel en hebben dus geen totaalrij eronder maar een tellingenblokje
+  ernaast. De opdracht legt uit waarom.
+- **`excel-draaitabel` is de bron van de draaitabel- en grafiekkaarten**, zoals
+  `excel-basis` dat is voor de functiefiches. Deel ze samen met `excel-ottomaans`
+  uit. De bundel staat los van elke opdracht: de voorbeelden spelen in de
+  schoolbibliotheek, de kantine en het schoolarchief, en `controleer.py` faalt
+  zodra er een naam uit een andere bundel in opduikt.
 - **`moordzaak`** is een spel, geen oefening op functies. Het kan op elk moment.
 
 ## Alles opnieuw bouwen
@@ -41,7 +53,8 @@ en `controleer.py` faalt zodra opdracht, startbestand en sleutel uit elkaar lope
 ```bash
 pip install openpyxl python-docx pillow
 for d in excel-basis excel-herhaling excel-herhaling-2 excel-uitdaging \
-         excel-toets excel-slimste-mens excel-detective moordzaak; do
+         excel-toets excel-slimste-mens excel-detective excel-draaitabel \
+         excel-ottomaans moordzaak; do
   (cd $d && for f in antwoorden.py maak-*.py controleer.py; do
      [ -f "$f" ] && python3 "$f" > /dev/null || true; done && echo "$d ok")
 done
