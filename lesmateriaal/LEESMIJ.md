@@ -14,7 +14,8 @@ en `controleer.py` faalt zodra opdracht, startbestand en sleutel uit elkaar lope
 | `excel-slimste-mens/` | zelfstudiebundel op SOM, AANTAL.ALS en VERT.ZOEKEN | wie het nog niet vast heeft | 40 min |
 | `excel-detective/` | vijf losse zaken, elk met één geneste functie | wie toe is aan iets meer | 5 × 25 min |
 | `excel-ottomaans/` | basisfuncties, dan een draaitabel en een grafiek | hele klas, na de basis | 50 min |
-| `excel-draaitabel/` | **theoriebundel**: 14 kaarten over draaitabel en grafiek | hoort bij `excel-ottomaans` | naslag |
+| `excel-streaming/` | idem, zelfde opbouw, streaming en schermtijd | wie na de eerste draaitabelles nog oefening nodig heeft | 50 min |
+| `excel-draaitabel/` | **theoriebundel**: 14 kaarten over draaitabel en grafiek | hoort bij de twee draaitabelbundels | naslag |
 | `moordzaak/` | detectivespel met Excel én papieren verhaallijn | hele klas, als spel | 50 min |
 
 ## Welke bundel hoort bij welke
@@ -41,11 +42,15 @@ en `controleer.py` faalt zodra opdracht, startbestand en sleutel uit elkaar lope
   opzet anders uit dan in alle vorige bundels — ze zijn bronlijst van een
   draaitabel en hebben dus geen totaalrij eronder maar een tellingenblokje
   ernaast. De opdracht legt uit waarom.
+- **`excel-ottomaans` en `excel-streaming`** hebben met opzet dezelfde opbouw, net
+  als de twee herhalingsbundels: blad 1 is twee keer een zoektabel met rekenwerk,
+  blad 4 is twee keer een draaitabel. Alleen draaitabel 2 is in `excel-streaming`
+  een stap moeilijker — twee waardevelden en Gemiddelde in plaats van Som.
 - **`excel-draaitabel` is de bron van de draaitabel- en grafiekkaarten**, zoals
   `excel-basis` dat is voor de functiefiches. Deel ze samen met `excel-ottomaans`
-  uit. De bundel staat los van elke opdracht: de voorbeelden spelen in de
-  schoolbibliotheek, de kantine en het schoolarchief, en `controleer.py` faalt
-  zodra er een naam uit een andere bundel in opduikt.
+  uit bij allebei de draaitabelbundels. Ze staat los van elke opdracht: de
+  voorbeelden spelen in de schoolbibliotheek, de kantine en het schoolarchief,
+  en `controleer.py` faalt zodra er een naam uit een andere bundel in opduikt.
 - **`moordzaak`** is een spel, geen oefening op functies. Het kan op elk moment.
 
 ## Alles opnieuw bouwen
@@ -54,7 +59,7 @@ en `controleer.py` faalt zodra opdracht, startbestand en sleutel uit elkaar lope
 pip install openpyxl python-docx pillow
 for d in excel-basis excel-herhaling excel-herhaling-2 excel-uitdaging \
          excel-toets excel-slimste-mens excel-detective excel-draaitabel \
-         excel-ottomaans moordzaak; do
+         excel-ottomaans excel-streaming moordzaak; do
   (cd $d && for f in antwoorden.py maak-*.py controleer.py; do
      [ -f "$f" ] && python3 "$f" > /dev/null || true; done && echo "$d ok")
 done

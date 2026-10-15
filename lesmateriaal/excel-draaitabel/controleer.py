@@ -158,12 +158,18 @@ TEKST = kaarttekst().lower()
 # Ze verklappen niets: "Verschil" of "Categorie" in een theoriekaart verwijst
 # niet naar één bepaalde opdracht. Zet hier alleen woorden bij die je ook in een
 # willekeurige andere les zou gebruiken — nooit een naam, een plaats of een code.
-ALGEMEEN = {
-    'aantal', 'afstand', 'bedrag', 'categorie', 'dagen', 'datum', 'december',
-    'eindtotaal', 'februari', 'filters', 'grafiek', 'januari', 'jaar', 'klas',
-    'kolommen', 'maand', 'naslag', 'november', 'oktober', 'onbekend', 'punten',
-    'resultaat', 'rijen', 'roman', 'september', 'soort', 'strip', 'totaal',
-    'verbouwing', 'verschil', 'waarde', 'waarden',
+# Excel-woorden. Een draaitabelinstelling als "Gemiddelde" of een veldnaam als
+# "Waarden" staat in de gegevens van een bundel én in deze kaarten, en hoort
+# daar allebei thuis. Dat is geen lek.
+EXCEL = {
+    'aantal', 'draaitabel', 'eindtotaal', 'filters', 'gemiddelde', 'grafiek',
+    'kolommen', 'rijen', 'totaal', 'waarde', 'waarden',
+}
+ALGEMEEN = EXCEL | {
+    'afstand', 'bedrag', 'categorie', 'dagen', 'datum', 'december', 'februari',
+    'januari', 'jaar', 'klas', 'maand', 'naslag', 'november', 'oktober',
+    'onbekend', 'punten', 'resultaat', 'roman', 'september', 'soort', 'strip',
+    'verbouwing', 'verschil',
 }
 
 verdacht = collections.defaultdict(set)
