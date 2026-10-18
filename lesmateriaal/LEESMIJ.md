@@ -15,7 +15,9 @@ en `controleer.py` faalt zodra opdracht, startbestand en sleutel uit elkaar lope
 | `excel-detective/` | vijf losse zaken, elk met één geneste functie | wie toe is aan iets meer | 5 × 25 min |
 | `excel-ottomaans/` | basisfuncties, dan een draaitabel en een grafiek | hele klas, na de basis | 50 min |
 | `excel-streaming/` | idem, zelfde opbouw, streaming en schermtijd | wie na de eerste draaitabelles nog oefening nodig heeft | 50 min |
-| `excel-draaitabel/` | **theoriebundel**: 14 kaarten over draaitabel en grafiek | hoort bij de twee draaitabelbundels | naslag |
+| `excel-draaitabellen/` | **alleen draaitabellen**, 5 datasets, thema Türkiye | wie de techniek wil inoefenen | 50 min |
+| `excel-grafieken/` | **alleen grafieken**, 5 datasets, thema Türkiye | idem, de zusterbundel | 50 min |
+| `excel-draaitabel/` | **theoriebundel**: 14 kaarten over draaitabel en grafiek | hoort bij alle vier de bundels hierboven | naslag |
 | `moordzaak/` | detectivespel met Excel én papieren verhaallijn | hele klas, als spel | 50 min |
 
 ## Welke bundel hoort bij welke
@@ -46,6 +48,11 @@ en `controleer.py` faalt zodra opdracht, startbestand en sleutel uit elkaar lope
   als de twee herhalingsbundels: blad 1 is twee keer een zoektabel met rekenwerk,
   blad 4 is twee keer een draaitabel. Alleen draaitabel 2 is in `excel-streaming`
   een stap moeilijker — twee waardevelden en Gemiddelde in plaats van Som.
+- **`excel-draaitabellen` en `excel-grafieken` zijn de oefenbundels**, gemaakt nadat
+  bleek dat zeven van de negen leerlingen in `excel-streaming` de draaitabel niet
+  haalden: de herhalingsbladen aten het lesuur op. In deze twee staat niets anders
+  dan de techniek zelf, en geen theorie — die staat op de kaarten, waar elk blad
+  naar verwijst. Ze delen hetzelfde materiaal (Türkiye) en kunnen in elke volgorde.
 - **`excel-draaitabel` is de bron van de draaitabel- en grafiekkaarten**, zoals
   `excel-basis` dat is voor de functiefiches. Deel ze samen met `excel-ottomaans`
   uit bij allebei de draaitabelbundels. Ze staat los van elke opdracht: de
@@ -59,7 +66,8 @@ en `controleer.py` faalt zodra opdracht, startbestand en sleutel uit elkaar lope
 pip install openpyxl python-docx pillow
 for d in excel-basis excel-herhaling excel-herhaling-2 excel-uitdaging \
          excel-toets excel-slimste-mens excel-detective excel-draaitabel \
-         excel-ottomaans excel-streaming moordzaak; do
+         excel-ottomaans excel-streaming excel-draaitabellen \
+         excel-grafieken moordzaak; do
   (cd $d && for f in antwoorden.py maak-*.py controleer.py; do
      [ -f "$f" ] && python3 "$f" > /dev/null || true; done && echo "$d ok")
 done

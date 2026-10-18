@@ -166,11 +166,16 @@ EXCEL = {
     'kolommen', 'rijen', 'totaal', 'waarde', 'waarden',
 }
 ALGEMEEN = EXCEL | {
-    'afstand', 'bedrag', 'categorie', 'dagen', 'datum', 'december', 'februari',
+    'aandeel', 'afstand', 'bedrag', 'categorie', 'dagen', 'datum', 'december',
+    'februari', 'porties',
     'januari', 'jaar', 'klas', 'maand', 'naslag', 'november', 'oktober',
     'onbekend', 'punten', 'resultaat', 'roman', 'september', 'soort', 'strip',
     'verbouwing', 'verschil',
 }
+# Deze lijst groeit mee met het aantal bundels: hoe meer datasets er zijn, hoe
+# vaker een gewoon Nederlands woord toevallig ook een kolomtitel is. Zet er
+# alleen woorden bij die je in een willekeurige andere les ook zou gebruiken —
+# nooit een naam, een plaats of een code.
 
 verdacht = collections.defaultdict(set)
 for pad in sorted(set(glob.glob(os.path.join(LESMATERIAAL, '*', 'gegevens.py')))):
