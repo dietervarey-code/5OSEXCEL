@@ -68,6 +68,47 @@ er geen menubalken omheen staan en het op papier leesbaar blijft.
 De fiche over de dollartekens heeft er twee naast elkaar — één fout en één juist —
 zodat ze zien wat er precies gebeurt als een verwijzing meeschuift.
 
+## Nakijken
+
+`nakijken.py` quoteert één ingeleverd bestand op 10: **8 voor het werk** en
+**2 voor de inzet**.
+
+```bash
+python3 -I nakijken.py <bestand.xlsx> "<naam van de leerling>"
+```
+
+De 8 punten komen uit 39 eenheden: de 21 opdrachten uit `maken` en de 18
+opmaakeisen, elk even zwaar. Binnen één doorgevoerde kolom wordt wel met delen
+gewerkt — elf van de twaalf juist is elf twaalfde. De uitkomst wordt **naar
+beneden** afgerond op een half punt: wie iets fout heeft, hoort niet het
+maximum te krijgen.
+
+De 2 punten inzet komen uit het aantal opdrachten dat de leerling heeft
+aangeraakt, met een halve punt aftrek zodra er ergens een antwoord is
+ingetypt in plaats van berekend. Dat is een maatstaf voor wie er niet bij was;
+jij stond in de klas en mag ze overrulen.
+
+Twee regels die overal gelden:
+
+1. **Een cel is pas juist als er een formule staat én de uitkomst klopt.** Een
+   ingetypt getal dat toevallig klopt, is geen Excel.
+2. **Een fout telt één keer.** Wie verder rekent op een fout die hierboven al
+   is aangerekend, verliest daar geen punten meer — tenzij zijn eigen formule
+   ook fout is.
+
+Het script is geijkt op het onaangeroerde startbestand: dat scoort 0/10, en
+0,3 van de 39 eenheden (kolom A op blad 5 is in het startbestand al breed
+genoeg). Zonder die ijking zou elke leerling gratis punten krijgen voor dingen
+die al goed stonden.
+
+`verwachting.py` houdt bij wat er in elke opdrachtcel hoort te staan. Die
+waarden komen uit `antwoorden.py` en de opdrachten uit `oefeningen.py`, dus het
+nakijkscript kan nooit uit de pas lopen met de bundel. Een `assert` faalt zodra
+er een opdracht bijkomt zonder verwachting, of omgekeerd.
+
+**Ingeleverde bestanden horen niet in deze map.** Ze dragen de namen van
+leerlingen en deze repository is openbaar. Werk in een map buiten het project.
+
 ## De bestanden opnieuw maken
 
 De gegevens staan in `gegevens.py`, de oefeningen in `oefeningen.py`, de fiches in
