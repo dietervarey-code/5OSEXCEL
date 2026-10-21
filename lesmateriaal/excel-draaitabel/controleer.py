@@ -167,7 +167,7 @@ EXCEL = {
 }
 ALGEMEEN = EXCEL | {
     'aandeel', 'afstand', 'bedrag', 'categorie', 'dagen', 'datum', 'december',
-    'februari', 'porties',
+    'februari', 'gevonden', 'porties',
     'januari', 'jaar', 'klas', 'maand', 'naslag', 'november', 'oktober',
     'onbekend', 'punten', 'resultaat', 'roman', 'september', 'soort', 'strip',
     'verbouwing', 'verschil',

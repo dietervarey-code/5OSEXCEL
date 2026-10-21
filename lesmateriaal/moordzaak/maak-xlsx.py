@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import importlib.util
+import os
 import sys
 
 sys.dont_write_bytecode = True   # geen __pycache__ naast het lesmateriaal
@@ -17,7 +18,9 @@ def stip(t):
 
 STIPOPMAAK = 'dd/mm hh:mm'
 
-spec = importlib.util.spec_from_file_location('m','/tmp/ctrl/moordzaak-data.py')
+HIER = os.path.dirname(os.path.abspath(__file__))
+spec = importlib.util.spec_from_file_location(
+    'm', os.path.join(HIER, 'moordzaak-data.py'))
 m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
 
 KOP   = PatternFill('solid', fgColor='1F3864')
