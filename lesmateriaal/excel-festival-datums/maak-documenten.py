@@ -11,7 +11,9 @@ import re
 import sys
 from docx import Document
 from docx.shared import Pt, Cm, RGBColor
-from docx.enum.text import WD_BREAK
+from docx.enum.text import WD_BREAK, WD_ALIGN_PARAGRAPH
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 from docx.enum.table import WD_TABLE_ALIGNMENT
 
 sys.dont_write_bytecode = True
@@ -136,6 +138,53 @@ def paginaeinde(doc):
     doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
 
 
+def veld(alinea, code):
+    """Een Word-veld, bijvoorbeeld PAGE. Word vult het zelf in bij het openen."""
+    r = alinea.add_run()
+    begin = OxmlElement('w:fldChar')
+    begin.set(qn('w:fldCharType'), 'begin')
+    instructie = OxmlElement('w:instrText')
+    instructie.set(qn('xml:space'), 'preserve')
+    instructie.text = f' {code} '
+    einde = OxmlElement('w:fldChar')
+    einde.set(qn('w:fldCharType'), 'end')
+    for stuk in (begin, instructie, einde):
+        r._r.append(stuk)
+    return r
+
+
+def paginanummers(doc, titel):
+    """Onderaan elke pagina: waar je bent, en in welk boekje."""
+    for sec in doc.sections:
+        p = sec.footer.paragraphs[0]
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        r = p.add_run(titel + '    ·    blz. ')
+        r.font.size = Pt(9)
+        r.font.color.rgb = GRIJS
+        veld(p, 'PAGE').font.size = Pt(9)
+        r = p.add_run(' van ')
+        r.font.size = Pt(9)
+        r.font.color.rgb = GRIJS
+        veld(p, 'NUMPAGES').font.size = Pt(9)
+        for run in p.runs:
+            run.font.color.rgb = GRIJS
+            run.font.size = Pt(9)
+
+
+def fiche_index(doc):
+    """Het lijstje waarmee je de fiches achteraan terugvindt."""
+    alinea(doc, f'De {len(f.FICHES)} fiches staan ACHTERAAN, na blad '
+                f'{o.OEFENINGEN[-1]["nr"]}. Eén fiche per pagina, in deze '
+                'volgorde:', vetgedrukt=True, na=6)
+    rijen = []
+    for deel in f.DELEN:
+        stukken = [f"{i} {kaart['naam']}"
+                   for i, kaart in enumerate(f.FICHES, 1)
+                   if kaart['deel'] == deel]
+        rijen.append([deel, '   ·   '.join(stukken)])
+    tabel(doc, ['Deel', 'Fiches'], rijen, breedtes=[4.2, 12.2])
+
+
 def punten_van(oef):
     return o.punten_van(oef)
 
@@ -207,6 +256,8 @@ tabel(doc, ['Blad', 'Wat je oefent', 'Fiches', 'Duur', 'Pt'],
         punten_van(oef)] for oef in o.OEFENINGEN],
       breedtes=[3.6, 5.6, 3.2, 2.6, 1.6])
 
+fiche_index(doc)
+
 kader(doc, 'Drie regels die op elk blad gelden', [
     '1.  Reken met de PEILDATUM die rechtsboven op elk blad staat, niet met '
     f'VANDAAG(). Die peildatum is {g.PEILDATUM.strftime("%d/%m/%Y")}, de '
@@ -229,7 +280,7 @@ for oef in o.OEFENINGEN:
 
     p = doc.add_paragraph()
     p.paragraph_format.space_after = Pt(10)
-    r = p.add_run('Fiches:  ')
+    r = p.add_run('Fiches achteraan:  ')
     r.bold = True; r.font.size = Pt(10); r.font.color.rgb = GRIJS
     stukken = [f"{n} — {f.FICHES[n - 1]['naam']}" for n in oef['fiches']]
     for n in oef.get('kaarten_elders', ()):
@@ -307,6 +358,7 @@ for regel in [
     p.add_run('☐   ').font.size = Pt(13)
     zin(p, regel)
 
+paginanummers(doc, 'opdracht')
 doc.save(OPDRACHT)
 print('geschreven:', OPDRACHT)
 
@@ -524,5 +576,6 @@ kader(doc, 'Wat hierbij hoort', [
     'De twee bundels kunnen in elke volgorde en zijn allebei vijftig minuten.',
 ], BLAUW)
 
+paginanummers(doc, 'lerarensleutel')
 doc.save(SLEUTEL)
 print('geschreven:', SLEUTEL)
