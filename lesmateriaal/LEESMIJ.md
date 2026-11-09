@@ -1,6 +1,6 @@
 # Lesmateriaal buiten het portaal
 
-Materiaal voor **echt Excel**, los van de webapplicatie. Elke map maakt zichzelf:
+Materiaal voor **echt Excel** (en één keer Word), los van de webapplicatie. Elke map maakt zichzelf:
 `gegevens.py` is de enige bron, de scripts bouwen het startbestand en de documenten,
 en `controleer.py` faalt zodra opdracht, startbestand en sleutel uit elkaar lopen.
 
@@ -22,6 +22,7 @@ en `controleer.py` faalt zodra opdracht, startbestand en sleutel uit elkaar lope
 | `excel-draaitabel/` | **theoriebundel**: 14 kaarten over draaitabel en grafiek | hoort bij alle zes de bundels hierboven | naslag |
 | `excel-festival-tekst/` | **tekstfuncties**: een rommelige line-up opkuisen, dan tabel + slicer | wie voorbij draaitabellen en grafieken is | 50 min |
 | `excel-festival-datums/` | **datumfuncties**: de planning van hetzelfde festival, dan tabel + tijdlijn | idem, de zusterbundel | 50 min |
+| `word-samenvoegen/` | **Word én Excel**: brieven en etiketten uit één lijst, in vijf stappen | na de festivalbundels | 6 lesuren |
 | `moordzaak/` | detectivespel met Excel én papieren verhaallijn | hele klas, als spel | 50 min |
 
 ## Welke bundel hoort bij welke
@@ -84,6 +85,21 @@ en `controleer.py` faalt zodra opdracht, startbestand en sleutel uit elkaar lope
   (datumbundel). Dat is meteen het antwoord op het open eindje van kaart 9:
   een tabel groeit wél mee als er een rij bijkomt. Voor dat ene blad hebben ze
   het draaitabelboekje nodig — kaart 3, 4, 8 en 13.
+- **`word-samenvoegen` is de enige bundel die buiten Excel komt**, en de enige
+  die over meer dan één lesuur loopt. Vijf stappen: de lijst klaarmaken in
+  Excel, dan etiketten, een brief, regels en filters in Word, en een
+  eindopdracht waarin ze de hele keten zelf doorlopen op een lijst die ze nog
+  niet gezien hebben. Het is de derde festivalbundel: dezelfde vzw, een jaar
+  later.
+- **Eén misverstand draagt die bundel**: de opmaak van een cel is niet de
+  inhoud van een cel. Een uur en een bedrag zijn getallen; het euroteken en de
+  dubbele punt zijn opmaak, en opmaak gaat niet mee naar Word. Daarom is
+  `TEKST` de enige nieuwe Excelfunctie en staat ze in stap 1, vóór er één
+  brief gemaakt wordt.
+- **De bladen die Word leest, bevatten niets anders dan de lijst** — koprij op
+  rij 1, geen titel, geen voetnoot, geen losse cel ernaast. Dezelfde regel als
+  bij een draaitabel, maar strenger: Word neemt de eerste gebruikte rij als
+  kolomnamen. De peildatum staat daarom op een apart blad.
 - **`moordzaak`** is een spel, geen oefening op functies. Het kan op elk moment.
 
 ## Alles opnieuw bouwen
@@ -95,7 +111,7 @@ for d in excel-basis excel-herhaling excel-herhaling-2 excel-uitdaging \
          excel-ottomaans excel-streaming excel-draaitabellen \
          excel-grafieken excel-minecraft-draaitabellen \
          excel-minecraft-grafieken excel-festival-tekst \
-         excel-festival-datums moordzaak; do
+         excel-festival-datums word-samenvoegen moordzaak; do
   (cd $d && for f in antwoorden.py maak-*.py controleer.py; do
      [ -f "$f" ] && python3 "$f" > /dev/null || true; done && echo "$d ok")
 done
