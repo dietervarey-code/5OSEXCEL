@@ -170,6 +170,27 @@ for stap, vraag, antwoord in a.ANTWOORDBLAD:
     eis(antwoord is not None and antwoord != '',
         f'geen antwoord op {vraag!r}')
     GETELD['vragen gekeurd'] += 1
+# een tekstantwoord mag niet in de opdracht zelf te lezen staan: niet in de
+# omschrijving van een kolom, niet in het verwachte resultaat, niet in de
+# controle en niet in het lijstje "Loop je vast?"
+for stap in o.STAPPEN:
+    bronnen = list(stap['inleiding']) + [stap['klaar'], stap['controle']]
+    bronnen += list(stap['vast'])
+    for _k, _naam, wat, _f, _p in stap.get('vullen', []):
+        bronnen.append(wat)
+    if stap.get('blad') in a.RIJ1:
+        bronnen.extend(str(w) for w in a.RIJ1[stap['blad']][2].values())
+    for _naam, hoe, _p in stap.get('stappen', []):
+        bronnen.append(hoe)
+    tekst_stap = ' '.join(bronnen).lower()
+    for st, vraag, antwoord in a.ANTWOORDBLAD:
+        if st != stap['nr'] or not isinstance(antwoord, str):
+            continue
+        eis(antwoord.lower() not in tekst_stap,
+            f"stap {stap['nr']}: het antwoord {antwoord!r} staat al in de "
+            'opdracht zelf te lezen — dan is de vraag gratis')
+        GETELD['antwoorden op lekken gekeurd'] += 1
+
 # geen twee keer hetzelfde tekstantwoord: dan kan je het ergens anders aflezen
 _tekst = collections.defaultdict(list)
 for i, (stap, vraag, antwoord) in enumerate(a.ANTWOORDBLAD, 1):

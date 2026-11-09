@@ -87,6 +87,12 @@ VOORBEELD_UUR = _een([v for v in VRIJ if v.naam == 'Imane Bogaerts'],
 VOORBEELD_OUDSTE, _oudste_leeftijd = _enige(VRIJ, lambda v: v.leeftijd)
 VOORBEELD_DERDE = _een([v for v in VRIJ if v.naam == 'Amina De Smet'],
                        'de vrijwilliger van de vergoedingsvraag')
+# De vraag over de taak in de brief mag NIET over VRIJ[0] gaan: die staat als
+# voorbeeld in de opdracht, en dan is het antwoord gratis.
+VOORBEELD_TAAK = _een([v for v in VRIJ if v.naam == 'Fatima De Cock'],
+                      'de vrijwilliger van de taakvraag')
+assert VOORBEELD_TAAK.taak != VRIJ[0].taak, (
+    'de taakvraag gaat over dezelfde taak als het voorbeeld in de opdracht')
 
 # ====================================================================
 #  stap 2 — de etiketten
@@ -165,12 +171,12 @@ ANTWOORDBLAD = [
      ETIKET_BLADEN),
     (2, 'Hoeveel etiketten blijven er leeg op het laatste blad?',
      ETIKET_LEEG_OP_LAATSTE),
-    (2, 'Wat zie je als je "Labels bijwerken" vergeet?',
-     'alleen het eerste etiket is gevuld'),
+    (2, f'Hoe heet het veld dat Word zelf op de etiketten 2 tot '
+        f'{g.ETIKET_PER_BLAD} zet?', 'Volgende record'),
     # ---- stap 3, de brief
     (3, 'Hoeveel brieven maakt Word?', AANTAL_BRIEVEN),
-    (3, f'Welke taak staat er in de brief van {VOORBEELD_EERSTE.naam}?',
-     VOORBEELD_EERSTE.taak),
+    (3, f'Welke taak staat er in de brief van {VOORBEELD_TAAK.naam}?',
+     VOORBEELD_TAAK.taak),
     (3, f'Welke vergoeding staat er in de brief van {VOORBEELD_DERDE.naam}?',
      VOORBEELD_DERDE.vergoeding),
     (3, 'Wat staat er in de brief als je het startuur uit de takentabel '
@@ -193,6 +199,19 @@ ANTW_KOPRIJ = 1
 ANTW_START = ANTW_KOPRIJ + 1
 ANTW_EIND = ANTW_START + len(ANTWOORDBLAD) - 1
 ANTW_KOP = ["Stap", "Vraag", "Antwoord"]
+
+
+# ====================================================================
+#  wat er in de EERSTE gegevensrij hoort te staan
+#  De opdracht zet dit als voorbeeld naast elke kolom. Zo ziet de leerling
+#  waar hij naartoe moet zonder dat de formule erbij staat, en kan de
+#  omschrijving nooit uit elkaar lopen met de werkelijkheid.
+# ====================================================================
+VRIJ_RIJ1 = dict(zip(g.VRIJ_KOP[g.VRIJ_KLAAR:], VRIJ[0].gemaakt()))
+SPON_RIJ1 = dict(zip(g.SPON_KOP[g.SPON_KLAAR:], SPON[0].gemaakt()))
+# per blad: op welke rij het voorbeeld staat, van wie het is, en de waarden
+RIJ1 = {g.VRIJ_BLAD: (g.VRIJ_START, VRIJ[0].naam, VRIJ_RIJ1),
+        g.SPON_BLAD: (g.SPON_START, SPON[0].bedrijf, SPON_RIJ1)}
 
 
 def _tabel(koppen, rijen):

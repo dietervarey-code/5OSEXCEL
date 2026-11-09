@@ -20,6 +20,33 @@ naar de vrijwilligers en naar de sponsors.
 | `samenvoegen-brief-sponsors.docx` | leerlingen | stap 5 |
 | `samenvoegen-lerarensleutel.docx` | jou | — |
 
+## Bij elke kolom staat wat erin moet komen
+
+In de opdracht staat per kolom drie dingen: de kolomletter, een omschrijving
+die zegt uit welke stukken de inhoud bestaat, en **wat er in de eerste
+gegevensrij hoort te staan als het klopt**. Dus niet "de aanspreking voor de
+brief", maar "het woord Beste, een spatie, en de voornaam" met `Beste Lotte`
+ernaast.
+
+Die laatste kolom komt uit `antwoorden.py` en kan dus nooit uit elkaar lopen
+met de sleutel. `controleer.py` eist dat elke te maken kolom er een heeft.
+
+Twee vragen die daardoor gratis werden, zijn vervangen: de taakvraag van stap
+3 gaat nu over een andere vrijwilliger dan het voorbeeld, en de etiketvraag
+van stap 2 vraagt naar het veld «Volgende record» in plaats van naar iets wat
+al in "Loop je vast?" stond. `controleer.py` kijkt nu ook na dat **geen enkel
+tekstantwoord elders in diezelfde stap te lezen staat** — niet in de
+omschrijving, niet in het voorbeeld, niet in de controle en niet in het
+lijstje "Loop je vast?".
+
+En er staat vooraan een kader **Wat je NIET zelf typt**: geen aanspreking
+bedenken (de vrijwilligerslijst heeft geen geslacht, dus daar is het "Beste"
+plus de voornaam; de sponsorlijst heeft er wél een kolom voor), geen naam of
+adres of bedrag in een brief intypen, en de punthaken van een samenvoegveld
+nooit zelf.
+
+## De briefmodellen
+
 De twee briefmodellen zijn er om tijd te winnen. De brief staat er al in; ze
 hoeven hem niet te typen. In de vrijwilligersbrief staan oranje markers tussen
 dubbele haken op de plaatsen waar een samenvoegveld komt. In de sponsorbrief
@@ -155,10 +182,14 @@ python3 controleer.py
 - elke fiche gebruikt wordt en elke functie een fiche heeft
 - de bundel op 100 punten en 6 lesuren uitkomt
 
-Getest met twintig ingespoten fouten — een voetnoot onder de lijst, een losse
-cel ernaast, samengevoegde cellen, `TEKST` vergeten, een kolom in de verkeerde
-letter, een marker die geen kolom is, een marker die uit de brief verdwenen
-is, markers in de sponsorbrief, geen enkele minderjarige, alle sponsors boven
-de drempel, één aanspreking, twee dezelfde voornamen, een kolomnaam met een
-haakje erin. Negentien worden gevangen; de twintigste was geen echte fout (de
-injectie overschreef zichzelf) en is vervangen door twee die wél werken.
+- **geen enkel tekstantwoord elders in diezelfde stap te lezen staat**
+
+Getest met tweeëntwintig ingespoten fouten — een voetnoot onder de lijst, een
+losse cel ernaast, samengevoegde cellen, `TEKST` vergeten, een kolom in de
+verkeerde letter, een marker die geen kolom is, een marker die uit de brief
+verdwenen is, markers in de sponsorbrief, geen enkele minderjarige, alle
+sponsors boven de drempel, één aanspreking, twee dezelfde voornamen, een
+kolomnaam met een haakje erin, en twee antwoorden die in de opdracht zelf te
+lezen stonden. Eenentwintig worden gevangen; de tweeëntwintigste bleek geen
+echte fout — die injectie overschreef zichzelf — en is door twee werkende
+vervangen.

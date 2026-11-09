@@ -146,31 +146,31 @@ SPON_KOP = ["Bedrijf", "Voornaam", "Naam", "Aanspreking", "Straat", "Nummer",
             "Aanhef", "Adresregel", "Woonplaats", "Bedrag in tekst"]
 SPON_KLAAR = 10
 SPON_PAKKETTEN = ["Brons", "Goud", "Zilver"]
-SPON_AANSPREKINGEN = ["de heer", "mevrouw"]
+SPON_AANSPREKINGEN = ["heer", "mevrouw"]
 # (bedrijf, voornaam, naam, aanspreking, straat, nummer, postcode, gemeente,
 #  pakket, bedrag)
 SPONSORS = [
-    ("Bakkerij Van Hoof", "Karel", "Van Hoof", "de heer",
+    ("Bakkerij Van Hoof", "Karel", "Van Hoof", "heer",
      "Kerkstraat", 3, 2500, "Lier", "Brons", 250.0),
     ("Garage Dierckx", "Nadia", "Dierckx", "mevrouw",
      "Mechelsesteenweg", 142, 2018, "Antwerpen", "Zilver", 750.0),
-    ("Drukkerij Lemmens", "Peter", "Lemmens", "de heer",
+    ("Drukkerij Lemmens", "Peter", "Lemmens", "heer",
      "Industrieweg", 7, 2800, "Mechelen", "Goud", 2000.0),
-    ("Fietsen Aerts", "Tom", "Aerts", "de heer",
+    ("Fietsen Aerts", "Tom", "Aerts", "heer",
      "Statielei", 54, 2640, "Mortsel", "Brons", 250.0),
     ("Apotheek De Brug", "Sofie", "Maes", "mevrouw",
      "Turnhoutsebaan", 88, 2140, "Borgerhout", "Zilver", 750.0),
     ("Bouwbedrijf Noels", "Ann", "Noels", "mevrouw",
      "Vaartstraat", 21, 2800, "Mechelen", "Goud", 2000.0),
-    ("Slagerij Cuyvers", "Dirk", "Cuyvers", "de heer",
+    ("Slagerij Cuyvers", "Dirk", "Cuyvers", "heer",
      "Dorpsstraat", 16, 2500, "Lier", "Brons", 250.0),
     ("IT-Partner Zuid", "Hanne", "Devos", "mevrouw",
      "Berchemlei", 33, 2140, "Borgerhout", "Zilver", 750.0),
-    ("Taxi Centraal", "Mustafa", "Yildiz", "de heer",
+    ("Taxi Centraal", "Mustafa", "Yildiz", "heer",
      "Statiestraat", 5, 2600, "Berchem", "Brons", 250.0),
     ("Keurslager Pauwels", "Lieve", "Pauwels", "mevrouw",
      "Gitschotellei", 119, 2140, "Borgerhout", "Zilver", 750.0),
-    ("Houthandel Verreth", "Jan", "Verreth", "de heer",
+    ("Houthandel Verreth", "Jan", "Verreth", "heer",
      "Boomsesteenweg", 240, 2610, "Wilrijk", "Goud", 2000.0),
     ("Schoonmaak Helder", "Rania", "Haddad", "mevrouw",
      "Herentalsebaan", 76, 2100, "Deurne", "Brons", 250.0),

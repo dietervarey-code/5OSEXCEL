@@ -41,6 +41,10 @@ def marker(naam):
     return f'[[{naam}]]'
 
 
+# Wat er op één etiket komt: drie regels, en per regel welke velden.
+ETIKET_REGELS = [['Voornaam', 'Achternaam'], ['Adresregel'], ['Woonplaats']]
+
+
 def _fiche(naam):
     for i, kaart in enumerate(f.FICHES, 1):
         if kaart['naam'] == naam:
@@ -99,31 +103,41 @@ STAPPEN = [
         ],
         vullen=[
             (f'{_kolomletter(V, "Aanhef")}', 'Aanhef',
-             'de aanspreking voor de brief',
+             'het woord Beste, een spatie, en de voornaam. Niets meer. Je '
+             'typt hier NERGENS zelf mevrouw of mijnheer: dat staat niet in '
+             'deze lijst, en vrijwilligers spreek je met hun voornaam aan',
              f'="Beste "&{_kolomletter(V, "Voornaam")}{_vr}', 2),
             (f'{_kolomletter(V, "Adresregel")}', 'Adresregel',
-             'straat en huisnummer op één regel',
+             'de straat, één spatie, en het huisnummer — in die volgorde, op '
+             'één regel',
              f'={_kolomletter(V, "Straat")}{_vr}&" "'
              f'&{_kolomletter(V, "Nummer")}{_vr}', 2),
             (f'{_kolomletter(V, "Woonplaats")}', 'Woonplaats',
-             'postcode en gemeente op één regel',
+             'de postcode, één spatie, en de gemeente — in die volgorde, op '
+             'één regel',
              f'={_kolomletter(V, "Postcode")}{_vr}&" "'
              f'&{_kolomletter(V, "Gemeente")}{_vr}', 2),
             (f'{_kolomletter(V, "Taak")}', 'Taak',
-             'de taak die bij de taakcode hoort',
+             f'de taak die bij de taakcode hoort, opgezocht op het werkblad '
+             f'{g.TAKEN_BLAD} (kolom 2 van die tabel)',
              f'=VERT.ZOEKEN({_code};{_taken};2;ONWAAR)', 2),
             (f'{_kolomletter(V, "Startuur")}', 'Startuur',
-             'het startuur, als tekst in de vorm uu:mm',
+             f'het startuur uit {g.TAKEN_BLAD} (kolom 4), omgezet naar TEKST '
+             'in de vorm uu:mm — twee cijfers, een dubbele punt, twee cijfers',
              f'=TEKST(VERT.ZOEKEN({_code};{_taken};4;ONWAAR);"uu:mm")', 2),
             (f'{_kolomletter(V, "Vergoeding")}', 'Vergoeding',
-             'de vergoeding, als tekst met een euroteken',
+             f'de vergoeding uit {g.TAKEN_BLAD} (kolom 5), omgezet naar TEKST '
+             'met een euroteken, een spatie en twee cijfers achter de komma',
              f'=TEKST(VERT.ZOEKEN({_code};{_taken};5;ONWAAR);"€ #.##0,00")', 2),
             (f'{_kolomletter(V, "Leeftijd")}', 'Leeftijd',
-             f'de leeftijd op {g.datum(g.FESTIVALDAG)}',
+             f'de leeftijd in HELE jaren op {g.datum(g.FESTIVALDAG)}, als '
+             f'gewoon getal. Reken met de peildatum op {g.PEILCEL}',
              f'=DATUMVERSCHIL({_kolomletter(V, "Geboortedatum")}{_vr};'
              f'{g.PEILCEL};"J")', 2),
             (f'{_kolomletter(V, "Begeleiding")}', 'Begeleiding',
-             'ja of nee: is deze vrijwilliger nog geen 18?',
+             f'het woord ja als de leeftijd onder {g.MEERDERJARIG} ligt, en '
+             'anders het woord nee. Klein geschreven, zonder punt — Word gaat '
+             'er in stap 4 letterlijk mee vergelijken',
              f'=ALS({_kolomletter(V, "Leeftijd")}{_vr}<{g.MEERDERJARIG};'
              '"ja";"nee")', 2),
         ],
@@ -156,6 +170,7 @@ STAPPEN = [
             f'{STARTBESTAND} — de lijst die je in stap 1 hebt afgemaakt. Zet '
             'allebei de bestanden in dezelfde map voor je begint.',
         ],
+        etiket=ETIKET_REGELS,
         stappen=[
             ('Nieuw Worddocument, en kies Etiketten',
              f'Verzendlijsten, Afdruk samenvoegen starten, Etiketten. Kies '
@@ -167,8 +182,12 @@ STAPPEN = [
              f'{STARTBESTAND}, werkblad {g.VRIJ_BLAD}. Laat "De eerste rij '
              'bevat kolomnamen" aangevinkt.', 3),
             ('Vul het EERSTE etiket in',
-             'Drie regels: de naam, dan Adresregel, dan Woonplaats. Gebruik '
-             'Samenvoegveld invoegen — typ de punthaken niet zelf.', 3),
+             f'{len(ETIKET_REGELS)} regels, in deze volgorde: '
+             + ' / '.join(' '.join(f'«{v}»' for v in regel)
+                          for regel in ETIKET_REGELS)
+             + '. Druk na elke regel op Enter. Gebruik Samenvoegveld '
+               'invoegen — typ de punthaken niet zelf, en typ er geen komma '
+               'of punt bij.', 3),
             ('Labels bijwerken',
              'Verzendlijsten, Labels bijwerken. Nu staat hetzelfde op alle '
              'etiketten. Sla deze stap niet over.', 2),
@@ -319,19 +338,24 @@ STAPPEN = [
         ],
         vullen=[
             (f'{_kolomletter(S, "Aanhef")}', 'Aanhef',
-             'de zakelijke aanspreking: Geachte, de aanspreking, de naam',
+             'het woord Geachte, een spatie, de aanspreking uit kolom '
+             f'{_kolomletter(S, "Aanspreking")}, een spatie, en de naam uit '
+             f'kolom {_kolomletter(S, "Naam")}. Hier is het dus WEL zakelijk — '
+             'maar ook hier typ je de aanspreking niet zelf: ze staat in de '
+             'lijst, en ze is niet voor iedereen hetzelfde',
              f'="Geachte "&{_kolomletter(S, "Aanspreking")}{_sp}&" "'
              f'&{_kolomletter(S, "Naam")}{_sp}', 3),
             (f'{_kolomletter(S, "Adresregel")}', 'Adresregel',
-             'straat en huisnummer op één regel',
+             'de straat, één spatie, en het huisnummer',
              f'={_kolomletter(S, "Straat")}{_sp}&" "'
              f'&{_kolomletter(S, "Nummer")}{_sp}', 3),
             (f'{_kolomletter(S, "Woonplaats")}', 'Woonplaats',
-             'postcode en gemeente op één regel',
+             'de postcode, één spatie, en de gemeente',
              f'={_kolomletter(S, "Postcode")}{_sp}&" "'
              f'&{_kolomletter(S, "Gemeente")}{_sp}', 3),
             (f'{_kolomletter(S, "Bedrag in tekst")}', 'Bedrag in tekst',
-             'het bedrag met een euroteken, als tekst',
+             'het bedrag omgezet naar TEKST met een euroteken en twee cijfers '
+             'achter de komma, precies zoals de kolom Vergoeding in stap 1',
              f'=TEKST({_kolomletter(S, "Bedrag")}{_sp};"€ #.##0,00")', 3),
         ],
         stappen=[

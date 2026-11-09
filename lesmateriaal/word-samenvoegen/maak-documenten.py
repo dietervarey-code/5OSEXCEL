@@ -315,6 +315,21 @@ kader(doc, 'Vier regels die altijd gelden', [
     'wordt grijs als je erop klikt; getypte punthaken doen niets.',
 ], ORANJE)
 
+kader(doc, 'Wat je NIET zelf typt', [
+    'Bij elke kolom in stap 1 en 5 staat precies wat erin moet komen, en wat '
+    'er in de eerste rij hoort te staan als het klopt. Houd je daaraan: Word '
+    'neemt letterlijk over wat er in de cel staat.',
+    'Je typt nergens zelf een aanspreking. In de vrijwilligerslijst staat geen '
+    'geslacht, dus daar is de aanhef "Beste" plus de voornaam — en niets '
+    'anders. In de sponsorlijst staat de aanspreking wél in een kolom (heer of '
+    'mevrouw); die plak je erbij, je bedenkt ze niet.',
+    'Je typt ook nooit zelf een naam, een adres, een uur of een bedrag in een '
+    'brief. Alles wat per persoon verschilt, komt uit de lijst. Zie je jezelf '
+    'iets intypen wat in de lijst staat, dan doe je het verkeerd.',
+    'En je typt de punthaken « » van een samenvoegveld niet zelf. Die horen '
+    'bij het veld en komen mee als je het invoegt.',
+], ORANJE)
+
 kader(doc, 'Wat je indient', [
     'samenvoegen-jouwnaam.xlsx — met de kolommen van stap 1 en 5, en het '
     'antwoordblad ingevuld.',
@@ -351,17 +366,40 @@ for stap in o.STAPPEN:
     doc.add_paragraph().paragraph_format.space_after = Pt(0)
 
     if stap.get('vullen'):
+        rij1, wie, waarden = a.RIJ1[stap['blad']]
         kop(doc, 'In Excel', 2, GRIJS)
-        tabel(doc, ['Kolom', 'Naam', 'Wat erin komt', 'Pt'],
-              [[kolom, naam, wat, punten]
+        alinea(doc,
+               f'Je typt elke formule ÉÉN keer, in rij {rij1}, en voert ze '
+               f'door tot onderaan. De laatste kolom hieronder laat zien wat '
+               f'er in rij {rij1} hoort te staan — dat is de rij van {wie}. '
+               'Komt er bij jou iets anders te staan, dan weet je meteen dat '
+               'het nog niet klopt.', na=8)
+        tabel(doc, ['Kolom', 'Naam', 'Wat erin komt', f'In rij {rij1} staat',
+                    'Pt'],
+              [[kolom, naam, wat, waarden[naam], punten]
                for kolom, naam, wat, _formule, punten in stap['vullen']],
-              breedtes=[1.8, 3.4, 9.8, 1.4])
+              breedtes=[1.4, 2.8, 7.6, 3.4, 1.2])
 
     if stap.get('stappen'):
         kop(doc, 'In Word', 2, GRIJS)
         tabel(doc, ['Wat', 'Hoe', 'Pt'],
               [[naam, hoe, punten] for naam, hoe, punten in stap['stappen']],
               breedtes=[4.4, 10.6, 1.4])
+
+    if stap.get('etiket'):
+        v = a.VRIJ[0]
+        velden = {'Voornaam': v.voornaam, 'Achternaam': v.achternaam,
+                  'Adresregel': v.adresregel, 'Woonplaats': v.woonplaats}
+        kop(doc, 'Zo ziet het eerste etiket eruit', 2, GRIJS)
+        tabel(doc, ['Wat je in het etiket zet',
+                    'Wat er na Voorbeeld van resultaten staat'],
+              [[' '.join(f'«{naam}»' for naam in regel),
+                ' '.join(velden[naam] for naam in regel)]
+               for regel in stap['etiket']],
+              'Light List Accent 1', [7.0, 8.0])
+        alinea(doc, 'Drie regels onder elkaar, dus Enter na elke regel. Geen '
+                    'komma tussen de voornaam en de achternaam, wel een '
+                    'spatie.', schuin=True, kleur=GRIJS, na=10)
 
     vragen = [(i, v, antw) for i, (st, v, antw) in enumerate(a.ANTWOORDBLAD, 1)
               if st == stap['nr']]
