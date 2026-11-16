@@ -23,6 +23,7 @@ en `controleer.py` faalt zodra opdracht, startbestand en sleutel uit elkaar lope
 | `excel-festival-tekst/` | **tekstfuncties**: een rommelige line-up opkuisen, dan tabel + slicer | wie voorbij draaitabellen en grafieken is | 50 min |
 | `excel-festival-datums/` | **datumfuncties**: de planning van hetzelfde festival, dan tabel + tijdlijn | idem, de zusterbundel | 50 min |
 | `word-samenvoegen/` | **Word én Excel**: brieven en etiketten uit één lijst, in vijf stappen | na de festivalbundels | 6 lesuren |
+| `word-samenvoegen-opmaak/` | **alleen Word**: vier soorten samenvoegen (etiketten, enveloppen, brief, lijst) én de lay-out | na `word-samenvoegen` | 5 lesuren |
 | `moordzaak/` | detectivespel met Excel én papieren verhaallijn | hele klas, als spel | 50 min |
 
 ## Welke bundel hoort bij welke
@@ -100,6 +101,23 @@ en `controleer.py` faalt zodra opdracht, startbestand en sleutel uit elkaar lope
   rij 1, geen titel, geen voetnoot, geen losse cel ernaast. Dezelfde regel als
   bij een draaitabel, maar strenger: Word neemt de eerste gebruikte rij als
   kolomnamen. De peildatum staat daarom op een apart blad.
+- **`word-samenvoegen-opmaak` is het vervolg erop**, en het spiegelbeeld: daar
+  lag het werk in Excel, hier is er geen Excelwerk meer. De drie lijsten staan
+  helemaal klaar, met opzet, zodat elke minuut naar Word gaat. Ze doen vier van
+  de vijf soorten samenvoegdocumenten die Word kent — etiketten, enveloppen,
+  brieven en een Lijst — en bij elk ervan wordt de **opmaak apart gequoteerd**:
+  37 van de 100 punten. Thema: een voetbalclub, dus een andere wereld dan het
+  festival.
+- **Twee fouten dragen die tweede bundel**: spaties zijn geen tabstops (bij de
+  volgende naam staat de datum weer scheef, want «Voornaam» is niet overal even
+  lang), en op een etiket maak je de **eerste** kaart op en klik je dan Labels
+  bijwerken — niet omgekeerd. De derde valkuil zit in de Lijst: Word herhaalt
+  daar het **hele document** per record, dus de koprij hoort in het
+  samengevoegde resultaat, niet in het hoofddocument.
+- **De twee briefmodellen van die bundel zijn met opzet lelijk**: de tekst staat
+  er al, zodat ze niet hoeven te typen, maar er zit geen enkele tabstop,
+  lettergrootte of uitlijning in. De lay-out is de oefening. `controleer.py`
+  valt erover zodra er per ongeluk opmaak in een model staat.
 - **`moordzaak`** is een spel, geen oefening op functies. Het kan op elk moment.
 
 ## Alles opnieuw bouwen
@@ -111,7 +129,8 @@ for d in excel-basis excel-herhaling excel-herhaling-2 excel-uitdaging \
          excel-ottomaans excel-streaming excel-draaitabellen \
          excel-grafieken excel-minecraft-draaitabellen \
          excel-minecraft-grafieken excel-festival-tekst \
-         excel-festival-datums word-samenvoegen moordzaak; do
+         excel-festival-datums word-samenvoegen \
+         word-samenvoegen-opmaak moordzaak; do
   (cd $d && for f in antwoorden.py maak-*.py controleer.py; do
      [ -f "$f" ] && python3 "$f" > /dev/null || true; done && echo "$d ok")
 done
